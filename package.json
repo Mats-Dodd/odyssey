@@ -4,6 +4,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:desktop": "cd apps/desktop && pnpm dev:tauri",
     "lint": "turbo run lint",
     "format": "prettier --write .",
     "prepare": "husky"
