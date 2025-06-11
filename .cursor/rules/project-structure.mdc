@@ -1,0 +1,153 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Haptic Project Structure Overview
+
+**Haptic** is a local-first, privacy-focused markdown note-taking ecosystem built as a TypeScript monorepo using pnpm workspaces. The project delivers consistent experiences across desktop, web, and marketing platforms through shared components and configurations.
+
+## 🏗️ Architecture Overview
+
+```
+odyssey/
+├── apps/                    # Three main applications
+│   ├── desktop/            # Tauri-based native desktop app
+│   ├── web/                # SvelteKit web app with client-side DB
+│   └── homepage/           # Marketing site + distribution APIs
+├── packages/               # Shared libraries and configurations
+│   ├── ui/                 # Component library (@haptic/ui)
+│   ├── config-eslint/      # Shared linting rules
+│   └── config-tailwind/    # Design system tokens
+└── [root configs]          # Workspace, build, and tooling setup
+```
+
+## 📱 Applications (`/apps`)
+
+### 🖥️ **Desktop App** - Native Cross-Platform Application
+- **Technology**: SvelteKit + Tauri (Rust) + TipTap Editor
+- **Purpose**: Local file system-based note-taking with native OS integration
+- **Key Features**: Auto-updater, full filesystem access, offline-first, task management
+- **Entry Point**: `apps/desktop/src/routes/+layout.svelte`
+- **Development**: `pnpm dev:tauri`
+
+### 🌐 **Web App** - Browser-Based Application  
+- **Technology**: SvelteKit + PGLite (PostgreSQL in browser) + Drizzle ORM
+- **Purpose**: Cross-device accessible note-taking with client-side database
+- **Key Features**: Offline capability, responsive design, data persistence
+- **Entry Point**: `apps/web/src/routes/+layout.svelte`
+- **Development**: `pnpm dev` (from web directory)
+
+### 🏠 **Homepage** - Marketing & Distribution
+- **Technology**: SvelteKit (static) + Vercel Edge Config
+- **Purpose**: Product marketing, app downloads, update management
+- **Key Features**: Landing page, download links, update API for desktop app
+- **Entry Point**: `apps/homepage/src/routes/+page.svelte`
+- **Development**: `pnpm dev` (from homepage directory)
+
+## 📦 Shared Packages (`/packages`)
+
+### 🎨 **@haptic/ui** - Component Library
+- **Purpose**: Unified Svelte component system across all apps
+- **Technology**: Svelte + TypeScript + Tailwind + bits-ui primitives
+- **Usage**: `import { Button } from '@haptic/ui'`
+- **Contains**: Buttons, dialogs, inputs, navigation, layout components
+
+### 🔧 **@haptic/eslint-config** - Code Standards
+- **Purpose**: Consistent linting rules across all applications
+- **Includes**: TypeScript, Svelte, Prettier, Turbo optimizations
+- **Usage**: Extend in app `.eslintrc` files
+- **Impact**: Changes affect all apps immediately
+
+### 🎨 **@haptic/tailwind-config** - Design System
+- **Purpose**: Shared design tokens, colors, typography, spacing
+- **Includes**: Dark mode, responsive breakpoints, custom color system
+- **Usage**: Import and extend in app `tailwind.config.js`
+- **Impact**: Global design system changes
+
+## 🔄 Development Workflow
+
+### Quick Start Commands
+```bash
+# Root level - start all apps
+pnpm dev:desktop    # Desktop app with Tauri
+pnpm dev:web        # Web app 
+pnpm dev:homepage   # Homepage/marketing site
+
+# Individual app development
+cd apps/desktop && pnpm dev:tauri
+cd apps/web && pnpm dev
+cd apps/homepage && pnpm dev
+```
+
+### Key Development Patterns
+1. **Shared UI**: All apps use `@haptic/ui` components for consistency
+2. **Workspace Dependencies**: Internal packages use `workspace:*` protocol
+3. **TypeScript**: Full type safety across entire monorepo
+4. **Tailwind CSS**: Shared design system with app-specific extensions
+
+## 🗂️ Navigation Guide for Developers
+
+### Starting Points by Task
+
+**Building UI Components**
+- Start: `packages/ui/components/`
+- Test in: Both desktop and web apps
+- Export from: Component's `index.ts`
+
+**Desktop App Features**
+- Layout: `apps/desktop/src/routes/+layout.svelte`
+- Core Logic: `apps/desktop/src/lib/`
+- Native Config: `apps/desktop/src-tauri/tauri.conf.json`
+- File Operations: Look for `tauri-plugin-fs-*` usage
+
+**Web App Features**  
+- Layout: `apps/web/src/routes/+layout.svelte`
+- Database: `apps/web/src/lib/database/schema.ts`
+- Migrations: `apps/web/src/lib/database/migrations/`
+
+**Marketing/Distribution**
+- Landing: `apps/homepage/src/routes/+page.svelte`
+- APIs: `apps/homepage/src/routes/api/`
+- Updates: Check-updates and download endpoints
+
+**Global Changes**
+- Design System: `packages/config-tailwind/`
+- Linting Rules: `packages/config-eslint/`
+- Shared Components: `packages/ui/`
+
+## 🔧 Technical Architecture
+
+### Data Flow
+- **Desktop**: Local filesystem → Tauri APIs → Svelte components
+- **Web**: PGLite (browser DB) → Drizzle ORM → Svelte components  
+- **Homepage**: Static generation → Vercel Edge → API endpoints
+
+### Shared Dependencies
+- **SvelteKit**: Consistent framework across all apps
+- **TypeScript**: Type safety and developer experience
+- **Tailwind CSS**: Unified styling approach
+- **Vite**: Build tool and development server
+
+### Key Integrations
+- **Auto-updater**: Desktop app ↔ Homepage API
+- **Component Library**: All apps ← UI package
+- **Design System**: All apps ← Tailwind config
+- **Code Standards**: All apps ← ESLint config
+
+## 🎯 Architectural Decisions
+
+1. **Monorepo Structure**: Enables code sharing while maintaining app independence
+2. **Local-First Design**: Desktop prioritizes filesystem, web uses client-side DB
+3. **Shared UI Library**: Ensures consistent user experience across platforms
+4. **Progressive Enhancement**: Web app works offline, desktop has native features
+5. **Centralized Distribution**: Homepage manages updates and downloads
+6. **TypeScript Everywhere**: Type safety across entire codebase
+
+## 🚀 Deployment Strategy
+
+- **Desktop**: Tauri builds native binaries, distributed via homepage
+- **Web**: SvelteKit static/SSR deployment with Docker support
+- **Homepage**: Static site generation for marketing + API routes
+
+This architecture enables rapid cross-platform development while maintaining consistency, performance, and a great developer experience.

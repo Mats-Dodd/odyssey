@@ -1,0 +1,201 @@
+---
+description: 
+globs: apps/**
+alwaysApply: false
+---
+# Apps Directory - Haptic Ecosystem
+
+The `/apps` directory contains three distinct applications that form the **Haptic** ecosystem - a local-first, privacy-focused markdown note-taking platform. Each app serves a specific purpose while sharing common UI components and architectural patterns.
+
+## 🖥️ Desktop App (`apps/desktop/`)
+
+**Primary Purpose**: Cross-platform native desktop application for local note-taking and task management.
+
+### Technology Stack
+- **Framework**: SvelteKit + Tauri (Rust-based desktop framework)
+- **UI**: TipTap rich text editor with markdown support
+- **Styling**: Tailwind CSS + shared UI components
+- **File System**: Tauri plugins for file watching and extended FS operations
+
+### Key Architecture Points
+- **Product Name**: "Haptic" (v0.1.4)
+- **Bundle ID**: `com.haptic.md`
+- **Window Config**: 1020x750px (min: 800x600px)
+- **Auto-updater**: Integrated with homepage API endpoint
+- **File Permissions**: Full filesystem access with scope `["*/**", "*/**/.*", "*/**/.*/**"]`
+
+### Route Structure
+```
+/routes/
+├── +layout.svelte          # Main app layout with navigation
+├── +page.svelte            # Dashboard/home page
+├── daily/                  # Daily notes functionality
+├── notes/                  # Note management and editing
+└── tasks/                  # Task management system
+```
+
+### Development Commands
+- `pnpm dev:tauri` - Start Tauri development server
+- `pnpm tauri` - Access Tauri CLI commands
+- `pnpm build` - Build for production
+
+### Key Dependencies
+- `@tauri-apps/api` - Tauri frontend API
+- `@tiptap/*` - Rich text editor ecosystem
+- `tauri-plugin-fs-*` - File system plugins
+- `tiptap-markdown` - Markdown integration
+
+---
+
+## 🌐 Web App (`apps/web/`)
+
+**Primary Purpose**: Browser-based version of Haptic with client-side database for cross-device accessibility.
+
+### Technology Stack
+- **Framework**: SvelteKit
+- **Database**: PGLite (PostgreSQL in browser) + Drizzle ORM
+- **Deployment**: Docker with nginx configuration
+- **State**: Local browser storage with PostgreSQL compatibility
+
+### Database Schema
+```typescript
+// Core entities
+collection          # Note collections/folders
+├── path (PK)       # File system path
+├── name            # Display name
+└── lastOpened      # Timestamp
+
+collectionSettings  # Per-collection preferences
+├── collectionPath  # FK to collection
+├── editor         # Editor settings (JSON)
+└── notes          # Notes settings (JSON)
+
+entry              # Individual notes/files
+├── path (PK)      # Unique file path
+├── parentPath     # Folder structure
+├── content        # Note content
+├── isFolder       # Directory flag
+└── timestamps     # Created/updated
+```
+
+### Route Structure
+```
+/routes/
+├── +layout.svelte          # Web app layout with responsive design
+├── +page.svelte            # Landing/dashboard
+├── daily/                  # Daily notes (shared with desktop)
+├── notes/                  # Note editing interface
+└── tasks/                  # Task management (shared with desktop)
+```
+
+### Development Commands
+- `pnpm dev` - Start development server
+- `drizzle-kit` - Database migration tools
+- Docker deployment ready
+
+### Key Dependencies
+- `@electric-sql/pglite` - Client-side PostgreSQL
+- `drizzle-orm` + `drizzle-kit` - Type-safe ORM
+- `mode-watcher` - Dark/light mode handling
+
+---
+
+## 🏠 Homepage (`apps/homepage/`)
+
+**Primary Purpose**: Marketing site, app distribution, and update management for the Haptic ecosystem.
+
+### Technology Stack
+- **Framework**: SvelteKit (static generation)
+- **Deployment**: Vercel with Edge Config
+- **Purpose**: Landing page + API services
+
+### API Endpoints
+```
+/api/
+├── check-updates/          # Desktop app update checking
+│   └── ?target={{target}}&arch={{arch}}&currentVersion={{version}}
+└── download/               # App distribution/download links
+```
+
+### Route Structure
+```
+/routes/
+├── +layout.svelte          # Marketing site layout
+├── +page.svelte            # Hero/landing page
+├── download/               # Download page for desktop app
+└── api/                    # Update and distribution APIs
+```
+
+### Key Features
+- **Hero Section**: "Write Notes at the speed of touch"
+- **Download Links**: Direct desktop app distribution
+- **Update Server**: Handles Tauri auto-updater requests
+- **Tooltips**: Interactive feature explanations
+- **App Preview**: Live demo link to web app
+
+### Development Commands
+- `pnpm dev` - Development server
+- `pnpm build` - Static site generation
+
+---
+
+## Shared Architecture
+
+### Workspace Dependencies
+All apps leverage shared packages:
+- `@haptic/ui` - Common UI component library
+- `@haptic/tailwind-config` - Shared styling configuration
+- `@haptic/eslint-config` - Consistent code standards
+
+### Common Patterns
+- **SvelteKit**: All apps use SvelteKit for consistency
+- **TypeScript**: Full type safety across ecosystem
+- **Tailwind CSS**: Shared design system
+- **Component Library**: Reusable UI components (buttons, dialogs, etc.)
+
+### Development Workflow
+```bash
+# Root level commands
+pnpm dev:desktop    # Start desktop app
+pnpm dev:web        # Start web app  
+pnpm dev:homepage   # Start homepage
+
+# Individual app development
+cd apps/desktop && pnpm dev:tauri
+cd apps/web && pnpm dev
+cd apps/homepage && pnpm dev
+```
+
+## Navigation Guide for Developers
+
+### For Desktop App Development
+1. **Start Here**: `apps/desktop/src/routes/+layout.svelte` - Main app structure
+2. **Core Logic**: `apps/desktop/src/lib/` - Shared utilities and components
+3. **Tauri Config**: `apps/desktop/src-tauri/tauri.conf.json` - Native capabilities
+4. **File Operations**: Look for `tauri-plugin-fs-*` usage in components
+
+### For Web App Development
+1. **Start Here**: `apps/web/src/routes/+layout.svelte` - Web app structure
+2. **Database**: `apps/web/src/lib/database/` - Schema and client setup
+3. **Migrations**: `apps/web/src/lib/database/migrations/` - DB evolution
+4. **Local Storage**: PGLite integration in `client.ts`
+
+### For Homepage Development
+1. **Start Here**: `apps/homepage/src/routes/+page.svelte` - Landing page
+2. **API Logic**: `apps/homepage/src/routes/api/` - Update/download services
+3. **Assets**: `apps/homepage/src/lib/assets/` - Images and static content
+
+### Cross-App Shared Code
+- **UI Components**: `packages/ui/components/` - Reusable components
+- **Styling**: `packages/config-tailwind/` - Design tokens
+- **Types**: Look for `.d.ts` files in each app's `src/` directory
+
+## Key Architectural Decisions
+
+1. **Local-First**: Desktop app prioritizes local file system, web app uses client-side DB
+2. **Shared UI**: Component library ensures consistent experience across platforms
+3. **Progressive Enhancement**: Web app works offline, desktop app has native features
+4. **Update Management**: Centralized through homepage API
+5. **Monorepo Structure**: Shared tooling and dependencies via workspace packages
+
+This architecture enables rapid development across platforms while maintaining consistency and allowing platform-specific optimizations.

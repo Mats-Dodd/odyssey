@@ -1,0 +1,54 @@
+---
+description: 
+globs: packages/**
+alwaysApply: false
+---
+# Packages Directory Guide
+
+## Overview
+The `packages/` directory contains shared libraries used across all apps in this monorepo. All packages use the `@haptic` namespace.
+
+## Key Packages
+
+### `@haptic/ui`
+- **Purpose**: Shared Svelte component library
+- **Usage**: Import components like `import { Button } from '@haptic/ui'`
+- **Tech Stack**: Svelte + TypeScript + Tailwind CSS + bits-ui
+- **When to use**: For any UI components needed across desktop/web apps
+- **Note**: Components are accessible by default and follow design system tokens
+
+### `@haptic/eslint-config`
+- **Purpose**: Shared ESLint configuration
+- **Usage**: Extend in app `.eslintrc` files with `"@haptic/eslint-config"`
+- **Includes**: TypeScript, Svelte, Prettier, and Turbo optimizations
+- **When to modify**: Only when adding new global linting rules for all apps
+
+### `@haptic/tailwind-config`
+- **Purpose**: Shared Tailwind CSS configuration and design tokens
+- **Usage**: Import and extend in app `tailwind.config.js` files
+- **Includes**: Custom color system, typography, dark mode, responsive breakpoints
+- **When to modify**: When adding new design tokens or global styles
+
+## Development Guidelines
+
+### Adding New Components
+1. Add to `packages/ui/components/[component-name]/`
+2. Export from component's `index.ts`
+3. Follow existing patterns (use bits-ui primitives, Tailwind variants)
+4. Test in both desktop and web apps
+
+### Modifying Configs
+- **ESLint**: Changes affect all apps immediately
+- **Tailwind**: Changes affect all apps immediately
+- **Test thoroughly** across desktop and web before committing
+
+### Dependencies
+- Use `workspace:*` protocol for internal package dependencies
+- Keep external dependencies minimal and well-justified
+- Prefer peer dependencies for large libraries when possible
+
+## Quick Reference
+- **Import UI components**: `@haptic/ui`
+- **Extend ESLint**: `@haptic/eslint-config`
+- **Extend Tailwind**: `@haptic/tailwind-config`
+- **All packages**: Built with TypeScript, optimized for monorepo usage
