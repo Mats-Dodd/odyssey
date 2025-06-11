@@ -1,0 +1,260 @@
+---
+description: 
+globs: apps/homepage/**
+alwaysApply: false
+---
+# Homepage App Architecture & Development Guide
+
+## 🏗️ Core Architecture
+
+**Technology Stack**: SvelteKit + Vercel Edge Config + Static Site Generation
+**Purpose**: Marketing site, app downloads, and update management for desktop app
+**Entry Point**: `apps/homepage/src/routes/+layout.svelte`
+
+### Key Dependencies
+- **Frontend**: SvelteKit, @haptic/ui components, Tailwind CSS, Lucide icons
+- **Backend**: Vercel Edge Config for version management
+- **Build**: Vite, TypeScript, pnpm workspaces
+- **Deployment**: SvelteKit adapter-auto (Vercel optimized)
+
+## 📁 Directory Structure & Responsibilities
+
+```
+apps/homepage/
+├── src/
+│   ├── lib/
+│   │   ├── components/    # UI components (tooltip, platform-button)
+│   │   ├── assets/        # Images and static assets
+│   │   ├── redirects.ts   # URL redirect mappings
+│   │   └── store.ts       # Minimal state management
+│   └── routes/
+│       ├── +page.svelte   # Landing page
+│       ├── +layout.svelte # Site layout and navigation
+│       ├── api/           # API endpoints for desktop app
+│       │   ├── check-updates/ # Auto-updater endpoint
+│       │   └── download/      # Download redirect endpoint
+│       └── download/      # Download page
+├── static/               # Static assets (icons, images)
+├── app.html             # HTML template with meta tags
+└── svelte.config.js     # SvelteKit configuration
+```
+
+## 🔄 Auto-Updater System
+
+**Update Check API** (`src/routes/api/check-updates/+server.ts`):
+- Validates platform parameters: `target` (darwin/linux/windows), `arch` (x86_64/aarch64)
+- Fetches latest version from Vercel Edge Config
+- Compares with `currentVersion` parameter
+- Returns 204 if up-to-date, update manifest if newer version available
+- Includes signature verification for security
+
+**Update Response Format**:
+```typescript
+type UpdateResponse = {
+  version: string;
+  pub_date?: string;
+  url: string;           // GitHub release download URL
+  signature: string;     // Cryptographic signature for verification
+  notes?: string;        // Release notes
+};
+```
+
+**Platform Support Matrix**:
+- **macOS**: Full support (Intel x86_64 + Apple Silicon aarch64)
+- **Windows/Linux**: Planned (infrastructure ready, commented out)
+
+## 📦 Download Management
+
+**Download API** (`src/routes/api/download/+server.ts`):
+- Platform detection and validation
+- Version resolution via Vercel Edge Config
+- Direct GitHub release URL construction
+- 302 redirect to actual download files
+
+**Download URL Patterns**:
+```typescript
+const platforms = {
+  'darwin-x86_64': `${baseUrl}/Haptic_${version}_x64.dmg`,
+  'darwin-aarch64': `${baseUrl}/Haptic_${version}_aarch64.dmg`
+  // Windows/Linux patterns ready for future releases
+};
+```
+
+## 🎨 Marketing Site Features
+
+**Landing Page** (`src/routes/+page.svelte`):
+- Hero section with interactive tooltips
+- Feature highlights with hover effects
+- Call-to-action buttons (Download, Learn More)
+- Preloaded hero image for performance
+
+**Interactive Tooltips** (`src/lib/components/tooltip.svelte`):
+- Dynamic content based on tooltip type
+- GitHub API integration for live stats (stars, issues, forks)
+- Rate limiting handling with fallback content
+- Device-specific messaging (phone/tablet/computer)
+
+**Download Page** (`src/routes/download/+page.svelte`):
+- Platform auto-detection via user agent
+- Smooth transitions between platform selections
+- Architecture-specific downloads (Intel vs Apple Silicon)
+- Coming soon states for unsupported platforms
+
+## ⚙️ Configuration & Infrastructure
+
+**Vercel Edge Config Integration**:
+- Centralized version management
+- Real-time updates without deployment
+- Global edge distribution for low latency
+- Environment variable: `VITE_EDGE_CONFIG`
+
+**Edge Config Schema**:
+```typescript
+{
+  latest_version: string;  // e.g., "v0.1.4"
+  notes?: string;         // Release notes
+}
+```
+
+**SEO & Meta Tags** (`src/app.html`):
+- Open Graph tags for social sharing
+- Twitter Card optimization
+- Preload critical assets
+- Structured data for search engines
+
+## 🔗 URL Management & Redirects
+
+**Redirect System** (`src/lib/redirects.ts`):
+```typescript
+const redirects = {
+  '/app': 'https://app.haptic.md',           // Web app
+  '/github': 'https://go.haptic.md/github', // GitHub repo
+  '/twitter': 'https://go.haptic.md/twitter', // Social
+  '/sponsor': 'https://go.haptic.md/sponsor', // Sponsorship
+  '/tweet': 'https://go.haptic.md/tweet'     // Share link
+};
+```
+
+**Benefits**:
+- Short, memorable URLs for marketing
+- Analytics tracking via go.haptic.md
+- Easy redirect management without code changes
+- Consistent branding across platforms
+
+## 🎯 User Experience Patterns
+
+**Platform Detection**:
+- Automatic platform selection on download page
+- User agent parsing for OS detection
+- Graceful fallbacks for unknown platforms
+- Smooth scrolling to selected platform
+
+**Progressive Enhancement**:
+- Works without JavaScript (static generation)
+- Enhanced interactions with JS enabled
+- Responsive design for all screen sizes
+- Touch-friendly mobile interface
+
+**Performance Optimizations**:
+- Image preloading for hero section
+- Minimal JavaScript bundle
+- Edge-cached API responses
+- Static site generation for fast loading
+
+## 🔐 Security & Reliability
+
+**Cryptographic Verification**:
+- Ed25519 signatures for update packages
+- Public key verification in desktop app
+- Prevents man-in-the-middle attacks
+- Secure update delivery pipeline
+
+**API Validation**:
+- Strict parameter validation
+- Type-safe request handling
+- Error responses with helpful messages
+- Rate limiting via Vercel infrastructure
+
+**Content Security**:
+- No user-generated content
+- Static asset optimization
+- Secure header configuration
+- HTTPS enforcement
+
+## 🚀 Build & Deployment
+
+**Development Workflow**:
+- `pnpm dev`: Local development server
+- `pnpm build`: Static site generation
+- `pnpm preview`: Preview production build
+
+**Deployment Strategy**:
+- Automatic Vercel deployment on push
+- Edge function for API routes
+- Global CDN distribution
+- Zero-downtime deployments
+
+**Build Optimizations**:
+- SvelteKit adapter-auto for Vercel
+- Tree-shaking for minimal bundles
+- Image optimization and compression
+- Critical CSS inlining
+
+## 📊 Analytics & Monitoring
+
+**Event Tracking**:
+- Download button clicks with platform/arch data
+- Platform selection interactions
+- External link tracking
+- Error monitoring for API endpoints
+
+**Performance Metrics**:
+- Core Web Vitals monitoring
+- API response times
+- Edge Config fetch latency
+- Download success rates
+
+## 🎨 Design System Integration
+
+**Shared Components**:
+- Uses @haptic/ui component library
+- Consistent styling with desktop/web apps
+- Tailwind CSS for utility-first styling
+- Custom font loading (Gambarino-Regular)
+
+**Brand Assets**:
+- SVG logo with proper optimization
+- High-resolution hero images
+- Consistent color palette
+- Responsive image handling
+
+## 🔄 Version Management Workflow
+
+**Release Process**:
+1. Desktop app creates GitHub release with assets
+2. Update Vercel Edge Config with new version
+3. Homepage APIs automatically serve new version
+4. Desktop apps check for updates via API
+5. Users get notified of available updates
+
+**Rollback Capability**:
+- Edge Config allows instant version rollback
+- No code deployment required for version changes
+- Gradual rollout possible via Edge Config
+- Emergency stop capability
+
+## 🌐 Global Distribution
+
+**Edge Infrastructure**:
+- Vercel Edge Functions for API routes
+- Global CDN for static assets
+- Regional optimization for downloads
+- Low-latency responses worldwide
+
+**Internationalization Ready**:
+- Structure supports future i18n
+- URL patterns accommodate localization
+- Asset organization for multi-language
+- SEO-friendly URL structure
+
+This architecture provides a robust, scalable marketing and distribution platform that seamlessly integrates with the desktop app's auto-update system while delivering excellent user experience and performance globally. The use of Vercel Edge Config enables real-time version management without requiring code deployments, making the release process efficient and reliable.

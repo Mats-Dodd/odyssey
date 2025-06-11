@@ -1,0 +1,206 @@
+---
+description: 
+globs: apps/desktop/**
+alwaysApply: false
+---
+# Desktop App Architecture & Development Guide
+
+## 🏗️ Core Architecture
+
+**Technology Stack**: SvelteKit + Tauri (Rust) + TipTap Editor + TypeScript
+**Purpose**: Native cross-platform markdown note-taking with filesystem integration
+**Entry Point**: `apps/desktop/src/routes/+layout.svelte`
+
+### Key Dependencies
+- **Frontend**: SvelteKit, TipTap, @haptic/ui components, Tailwind CSS
+- **Backend**: Tauri 1.5.4, Rust plugins (fs-extra, fs-watch, window-state, theme)
+- **Editor**: TipTap with markdown extensions, character count, task lists
+- **Build**: Vite, TypeScript, pnpm workspaces
+
+## 📁 Directory Structure & Responsibilities
+
+```
+apps/desktop/
+├── src/
+│   ├── lib/
+│   │   ├── api/           # Core business logic (notes, folders, collection)
+│   │   ├── components/    # Svelte UI components
+│   │   ├── store.ts       # Global state management (Svelte stores)
+│   │   ├── constants.ts   # Shortcuts, settings defaults, OS configs
+│   │   ├── types.ts       # TypeScript interfaces
+│   │   └── utils.ts       # Helper functions, theme management
+│   └── routes/            # SvelteKit pages (notes/, tasks/, daily/)
+├── src-tauri/             # Rust backend
+│   ├── src/commands/      # Tauri commands (search, folder operations)
+│   ├── src/mac/          # macOS-specific window handling
+│   └── tauri.conf.json   # App configuration, permissions, updater
+└── static/               # Static assets
+```
+
+## 🔧 State Management (Svelte Stores)
+
+**Core Stores** (`src/lib/store.ts`):
+- `editor`: TipTap editor instance with save event system
+- `activeFile`: Currently open note path
+- `collection`: Active collection directory path
+- `platform`: OS detection ('darwin' | 'linux' | 'windows')
+- `appTheme`: Theme preference ('auto' | 'light' | 'dark')
+- `noteHistory`: Navigation history for back/forward
+- Sidebar states: `isPageSidebarOpen`, `pageSidebarWidth`, etc.
+
+**Settings Architecture**:
+- `appSettings`: Global app preferences (theme, font)
+- `collectionSettings`: Per-collection settings (editor config, trash behavior)
+- Settings stored in AppData directory as JSON
+
+## 📝 Note Management System
+
+**File Operations** (`src/lib/api/notes.ts`):
+- `createNote()`: Generates unique names (Untitled, Untitled 2, etc.)
+- `openNote()`: Loads content into TipTap editor, updates history
+- `saveNote()`: Auto-strips first heading, saves markdown
+- `deleteNote()`: Respects trash settings (system/haptic/.haptic/trash/delete)
+- `moveNote()`: Handles name conflicts, updates activeFile
+- `duplicateNote()`: Creates "(N)" suffix copies
+
+**Auto-save System**:
+- Debounced saving (750ms default)
+- Editor store with save event listeners
+- Markdown content extraction from TipTap
+
+## 🔍 Search & File System
+
+**Rust Search Command** (`src-tauri/src/commands/search.rs`):
+- Full-text search with regex support
+- Case sensitivity and whole-word matching
+- Context extraction (3-sentence preview)
+- Recursive directory traversal
+- Extension filtering (.md default)
+
+**File Watching**:
+- `tauri-plugin-fs-watch` for real-time updates
+- Collection entry refresh on filesystem changes
+- Automatic UI updates when files added/removed
+
+## 🎨 Editor Integration
+
+**TipTap Configuration**:
+- Starter kit with typography, task lists, links
+- Custom search/replace extension (`extensions/searchAndReplace.ts`)
+- Markdown serialization via `tiptap-markdown`
+- Character/word counting for metadata
+- Auto-correct and spell-check toggles
+
+**Editor Store Pattern**:
+```typescript
+interface EditorStore extends Writable<Editor> {
+  subscribeToSaveEvents: (callback: SaveListener) => () => void;
+  notifySaveEvent: () => void;
+}
+```
+
+## 🖥️ Platform-Specific Features
+
+**macOS Integration** (`src-tauri/src/mac/window.rs`):
+- Custom NSWindowDelegate for native window behavior
+- Transparent titlebar with custom traffic light positioning
+- Theme-aware window appearance (vibrant light/dark)
+- Fullscreen event handling
+- Window control positioning on resize
+
+**Cross-Platform File Operations**:
+- Show in folder: `explorer /select` (Windows), `open -R` (macOS), `xdg-open` (Linux)
+- Trash handling per OS conventions
+- Path separators and home directory resolution
+
+## ⚙️ Configuration & Settings
+
+**Tauri Configuration** (`src-tauri/tauri.conf.json`):
+- Auto-updater with public key verification
+- Filesystem permissions: `["*/**", "*/**/.*", "*/**/.*/**"]`
+- Bundle settings: icons, identifier (`com.haptic.md`)
+- Window defaults: 1020x750, min 800x600
+
+**Keyboard Shortcuts** (`src/lib/constants.ts`):
+- Command palette: `Cmd+K` (default), `Cmd+J` (open note)
+- Editor: `Cmd+E` (toggle mode), `Cmd+F` (search)
+- Navigation: `Cmd+Alt+←/→` (history), `Cmd+Shift+S` (sidebar)
+- File ops: `Cmd+N` (new note), `Cmd+Shift+N` (new folder)
+
+## 🔄 Collection Management
+
+**Collection Structure**:
+- Root directory contains markdown files and folders
+- `.haptic/` directory for metadata and settings
+- `collections.json` in AppData tracks multiple collections
+- Last opened collection auto-loads on startup
+
+**Collection Validation**:
+- `validateHapticFolder()` ensures `.haptic` directory exists
+- Settings inheritance: app → collection → defaults
+- Collection switching preserves per-collection preferences
+
+## 🚀 Build & Development
+
+**Development Commands**:
+- `pnpm dev:tauri`: Full Tauri development with hot reload
+- `pnpm dev`: Frontend-only development (limited functionality)
+- `pnpm build`: Production build for distribution
+
+**Build Process**:
+- SvelteKit static adapter for Tauri integration
+- Rust compilation with platform-specific targets
+- Icon generation for all platforms
+- Code signing and notarization (macOS)
+
+**Plugin Dependencies**:
+- `tauri-plugin-fs-extra`: Enhanced file operations
+- `tauri-plugin-fs-watch`: Filesystem monitoring
+- `tauri-plugin-window-state`: Window state persistence
+- `tauri-plugin-theme`: System theme detection
+
+## 🎯 Key Development Patterns
+
+**Component Architecture**:
+- Shared UI components from `@haptic/ui` package
+- Layout components: Header (drag region), Sidebar, Footer
+- Feature components: Editor, Command menu, Search results
+- Icon system with SVG definitions
+
+**Error Handling**:
+- Async/await with `.catch()` for file operations
+- Graceful degradation for missing files/permissions
+- User feedback through toast notifications
+
+**Performance Optimizations**:
+- Debounced search and auto-save
+- Lazy loading of file trees
+- Efficient file watching with targeted updates
+- Memory management for large collections
+
+## 🔐 Security & Permissions
+
+**Tauri Security**:
+- CSP disabled for editor functionality
+- Filesystem scope: full access with explicit patterns
+- No remote URL loading (local-first architecture)
+- Command allowlist for Rust function exposure
+
+**File System Access**:
+- Read/write permissions for user-selected directories
+- Trash operations respect OS security models
+- No automatic file execution or script running
+
+## 📊 Metadata & Analytics
+
+**Note Metadata** (`getNoteMetadataParams`):
+- File system metadata (size, dates, permissions)
+- Editor metadata (word count, character count, reading time)
+- Reading time calculation: 200 words/minute average
+
+**Performance Tracking**:
+- Search operation timing
+- File operation success/failure rates
+- Editor responsiveness metrics
+
+This architecture enables a robust, native desktop experience while maintaining cross-platform compatibility and leveraging web technologies for rapid development.

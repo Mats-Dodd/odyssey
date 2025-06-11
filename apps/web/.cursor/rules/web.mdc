@@ -1,0 +1,293 @@
+---
+description: 
+globs: apps/web/**
+alwaysApply: false
+---
+# Web App Architecture & Development Guide
+
+## 🏗️ Core Architecture
+
+**Technology Stack**: SvelteKit + PGLite (PostgreSQL in browser) + Drizzle ORM + TipTap Editor
+**Purpose**: Cross-device accessible note-taking with client-side database persistence
+**Entry Point**: `apps/web/src/routes/+layout.svelte`
+
+### Key Dependencies
+- **Frontend**: SvelteKit, TipTap, @haptic/ui components, Tailwind CSS
+- **Database**: PGLite 0.2.0 (PostgreSQL in browser), Drizzle ORM 0.33.0
+- **Editor**: TipTap with markdown extensions, character count, task lists
+- **Build**: Vite, TypeScript, pnpm workspaces
+- **Deployment**: Docker + Nginx, static site generation
+
+## 📁 Directory Structure & Responsibilities
+
+```
+apps/web/
+├── src/
+│   ├── lib/
+│   │   ├── api/           # Business logic (notes, folders, collection)
+│   │   ├── components/    # Svelte UI components
+│   │   ├── database/      # PGLite client, schema, migrations
+│   │   ├── store.ts       # Global state management (Svelte stores)
+│   │   ├── constants.ts   # Shortcuts, settings defaults
+│   │   ├── types.ts       # TypeScript interfaces
+│   │   └── utils.ts       # Helper functions, device detection
+│   └── routes/            # SvelteKit pages (notes/, tasks/, daily/)
+├── static/               # Static assets
+├── Dockerfile           # Container deployment
+├── nginx.conf          # Web server configuration
+└── package.json        # Dependencies and scripts
+```
+
+## 🗄️ Database Architecture (PGLite + Drizzle)
+
+**Client-Side PostgreSQL** (`src/lib/database/client.ts`):
+- PGLite runs full PostgreSQL in browser via WebAssembly
+- Data persisted in IndexedDB (`idb://haptic`)
+- Live query support for real-time updates
+- Proxy pattern for lazy database initialization
+
+**Database Schema** (`src/lib/database/schema.ts`):
+```typescript
+// Collections table
+collection: {
+  path: text (primary key)
+  name: text
+  lastOpened: timestamp
+}
+
+// Collection-specific settings
+collectionSettings: {
+  collectionPath: text (foreign key)
+  editor: jsonb
+  notes: jsonb
+}
+
+// File/folder entries
+entry: {
+  path: text (primary key)
+  name: text
+  parentPath: text
+  collectionPath: text (foreign key)
+  content: text
+  isFolder: boolean
+  size: bigint
+  createdAt: timestamp
+  updatedAt: timestamp (auto-updated via trigger)
+}
+```
+
+**Migration System** (`src/lib/database/migrations/`):
+- SQL-based migrations with automatic execution
+- Seed data includes default collection and README
+- PostgreSQL triggers for automatic timestamp updates
+- Constraint management for data integrity
+
+## 🔧 State Management (Svelte Stores)
+
+**Core Stores** (`src/lib/store.ts`):
+- `editor`: TipTap editor instance with save event system
+- `activeFile`: Currently open note path
+- `collection`: Active collection directory path
+- `collectionEntries`: Cached file tree for current collection
+- `noteHistory`: Navigation history for back/forward
+- Sidebar states: `isPageSidebarOpen`, `pageSidebarWidth`, etc.
+
+**Key Differences from Desktop**:
+- No `platform` store (browser-only)
+- Added `collectionEntries` for caching database queries
+- Settings stored in localStorage (app) + database (collection)
+
+## 📝 Note Management System
+
+**Database-Driven Operations** (`src/lib/api/notes.ts`):
+- `createNote()`: Inserts into `entry` table with generated names
+- `openNote()`: Loads content from database, updates editor
+- `saveNote()`: Updates `content` field in database
+- `deleteNote()`: Soft delete by updating database record
+- `moveNote()`: Updates `parentPath` and `path` fields
+- `duplicateNote()`: Creates new database entry with copied content
+
+**Auto-save System**:
+- Debounced saving (750ms default) to database
+- Real-time content persistence in browser storage
+- No filesystem dependency - pure database operations
+
+## 🔍 Search & Real-Time Updates
+
+**Database Search** (`src/lib/utils.ts`):
+- Full-text search via SQL queries on `content` field
+- Case sensitivity and whole-word matching support
+- Context extraction from database content
+- No external search indexing required
+
+**Live Query System**:
+- PGLite live queries for real-time UI updates
+- Automatic re-rendering when database changes
+- Collection watching via `pgClient.live.query()`
+- Efficient change detection and propagation
+
+## 🎨 Editor Integration
+
+**TipTap Configuration** (Same as Desktop):
+- Starter kit with typography, task lists, links
+- Custom search/replace extension
+- Markdown serialization via `tiptap-markdown`
+- Character/word counting for metadata
+- Auto-correct and spell-check toggles
+
+**Database Integration**:
+- Content stored as markdown text in database
+- Real-time collaboration potential via live queries
+- Version history through database triggers
+- Offline-first with browser persistence
+
+## 🌐 Browser-Specific Features
+
+**Device Detection** (`src/lib/utils.ts`):
+- Mobile/desktop responsive behavior
+- Touch vs. mouse interaction handling
+- Viewport-aware UI adjustments
+- Progressive enhancement patterns
+
+**Storage Strategy**:
+- App settings: localStorage for immediate access
+- Collection settings: Database for cross-device sync potential
+- File content: Database with IndexedDB persistence
+- No filesystem access - pure web technologies
+
+## ⚙️ Configuration & Settings
+
+**Database Settings Management**:
+- App settings in localStorage (JSON)
+- Collection settings in `collection_settings` table (JSONB)
+- Hierarchical settings: app → collection → defaults
+- Real-time settings sync via database updates
+
+**Theme Management**:
+- `mode-watcher` for system theme detection
+- CSS custom properties for theme switching
+- Persistent theme preferences in localStorage
+- No OS-level theme integration (browser limitation)
+
+## 🔄 Collection Management
+
+**Database-Driven Collections**:
+- Collections stored in `collection` table
+- File tree built from `entry` table relationships
+- Hierarchical folder structure via `parentPath` references
+- Last opened collection auto-loads from database
+
+**Collection Validation**:
+- Database constraints ensure data integrity
+- Automatic `.haptic` folder creation in database
+- Foreign key relationships maintain consistency
+- Migration system handles schema updates
+
+## 🚀 Build & Deployment
+
+**Development Commands**:
+- `pnpm dev`: SvelteKit development server with hot reload
+- `pnpm build`: Static site generation for deployment
+- `pnpm preview`: Preview production build locally
+
+**Docker Deployment**:
+- Multi-stage build with Node.js and Nginx
+- Turbo monorepo pruning for efficient builds
+- Static file serving via Nginx
+- Container-ready with health checks
+
+**Build Optimizations**:
+- PGLite excluded from Vite optimization (WebAssembly)
+- Static adapter for maximum compatibility
+- Tree-shaking for minimal bundle size
+- Progressive loading for large collections
+
+## 🎯 Key Development Patterns
+
+**Database-First Architecture**:
+- All operations go through Drizzle ORM
+- Type-safe database queries with TypeScript
+- Reactive UI updates via live queries
+- No direct file system access
+
+**Offline-First Design**:
+- Full PostgreSQL database in browser
+- IndexedDB persistence across sessions
+- No network dependency for core functionality
+- Sync-ready architecture for future features
+
+**Performance Optimizations**:
+- Lazy database initialization
+- Efficient query patterns with indexes
+- Debounced operations for better UX
+- Memory-efficient file tree caching
+
+## 🔐 Security & Privacy
+
+**Client-Side Security**:
+- No server-side data storage by default
+- All data remains in user's browser
+- HTTPS required for service worker features
+- Content Security Policy for XSS protection
+
+**Data Privacy**:
+- Local-first architecture - no data leaves browser
+- No analytics or tracking by default
+- User controls all data persistence
+- GDPR-compliant by design
+
+## 📊 Metadata & Analytics
+
+**Database Metadata**:
+- File system metadata simulated in database
+- Editor metadata (word count, character count, reading time)
+- Creation and modification timestamps via triggers
+- Size tracking for storage management
+
+**Performance Tracking**:
+- Database query performance monitoring
+- Real-time update latency measurement
+- Memory usage tracking for large collections
+- Browser compatibility metrics
+
+## 🔄 Live Query System
+
+**Real-Time Updates**:
+```typescript
+// Watch for database changes
+const dbWatcher = await pgClient.live.query(
+  'SELECT * FROM entry', 
+  [], 
+  async () => {
+    // Callback on data changes
+    await fetchCollectionEntries($collection);
+  }
+);
+```
+
+**Change Detection**:
+- PostgreSQL NOTIFY/LISTEN via PGLite
+- Automatic UI re-rendering on data changes
+- Efficient diff-based updates
+- Subscription cleanup on component destroy
+
+## 🐳 Docker & Deployment
+
+**Multi-Stage Build**:
+1. **Builder**: Node.js + pnpm + Turbo for monorepo pruning
+2. **Installer**: Dependency installation and project build
+3. **Runner**: Nginx serving static files
+
+**Production Configuration**:
+- Nginx with SPA fallback routing
+- MIME type configuration for modern JS
+- Gzip compression for assets
+- Health check endpoints
+
+**Deployment Targets**:
+- Static hosting (Vercel, Netlify, etc.)
+- Container platforms (Docker, Kubernetes)
+- CDN distribution for global performance
+- Self-hosted options with Docker
+
+This architecture enables a powerful, offline-first web application that provides desktop-class functionality while maintaining the accessibility and cross-platform benefits of web technologies. The client-side PostgreSQL database offers unprecedented capabilities for web applications while ensuring user privacy and data ownership.
