@@ -3,9 +3,9 @@
 	import { activeFile, collection, editor, editorSearchActive, editorSearchValue } from '@/store';
 	import type { SearchResultParams } from '@/types';
 	import { searchEntries } from '@/utils';
-	import * as Collapsible from '@haptic/ui/components/collapsible';
-	import Label from '@haptic/ui/components/label/label.svelte';
-	import { cn } from '@haptic/ui/lib/utils';
+	import * as Collapsible from '@typyst/ui/components/collapsible';
+	import Label from '@typyst/ui/components/label/label.svelte';
+	import { cn } from '@typyst/ui/lib/utils';
 	import { ChevronDown, Loader } from 'lucide-svelte';
 	import markdownit from 'markdown-it';
 	import { onDestroy, onMount } from 'svelte';

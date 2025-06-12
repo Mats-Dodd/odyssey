@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { appTheme } from '@/store';
-	import { Button } from '@haptic/ui/components/button';
-	import Label from '@haptic/ui/components/label/label.svelte';
-	import * as Select from '@haptic/ui/components/select';
-	import { cn } from '@haptic/ui/lib/utils';
+	import { Button } from '@typyst/ui/components/button';
+	import Label from '@typyst/ui/components/label/label.svelte';
+	import * as Select from '@typyst/ui/components/select';
+	import { cn } from '@typyst/ui/lib/utils';
 	import Icon from '../shared/icon.svelte';
 	import Tooltip from '../shared/tooltip.svelte';
 
-	let selectedTheme = { value: 'haptic', label: 'Haptic' };
+	let selectedTheme = { value: 'typyst', label: 'Typyst' };
 	let selectedFont = { value: 'inter', label: 'Inter' };
 </script>
 
@@ -70,7 +70,7 @@
 					<Select.Value class="text-sm text-foreground/85">{selectedTheme.label}</Select.Value>
 				</Select.Trigger>
 				<Select.Content>
-					<Select.Item value="haptic">Haptic</Select.Item>
+					<Select.Item value="typyst">Typyst</Select.Item>
 				</Select.Content>
 			</Select.Root>
 			<Button

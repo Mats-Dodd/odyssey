@@ -18,7 +18,7 @@ export const loadSettings = async (loadApp: boolean, loadCollection: boolean) =>
 	}
 
 	if (loadCollection) {
-		const collectionSettingsPath = `${get(collection)}/.haptic/settings.json`;
+		const collectionSettingsPath = `${get(collection)}/.typyst/settings.json`;
 		const collectionSettingsText = await readTextFile(collectionSettingsPath).catch(() => null);
 		if (!collectionSettingsText) {
 			setSettings('collection');
@@ -42,7 +42,7 @@ export const setSettings = async (
 	}
 
 	if (settingsType === 'collection') {
-		const collectionSettingsPath = `${get(collection)}/.haptic/settings.json`;
+		const collectionSettingsPath = `${get(collection)}/.typyst/settings.json`;
 		const collectionSettingsText = JSON.stringify(value ?? get(collectionSettings));
 		collectionSettings.set((value ?? get(collectionSettings)) as CollectionSettingsParams);
 		await writeTextFile(collectionSettingsPath, collectionSettingsText);

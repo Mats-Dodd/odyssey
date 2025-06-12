@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { collection } from '$lib/store';
-	import Button from '@haptic/ui/components/button/button.svelte';
+	import Button from '@typyst/ui/components/button/button.svelte';
 </script>
 
 <header
@@ -13,12 +13,12 @@
 		{$collection?.split('/').pop() || ''}
 	</p>
 	<div class="flex gap-1">
-		<a href="https://go.haptic.md/github" target="_blank" rel="noopener noreferrer">
+		<a href="https://go.typyst.md/github" target="_blank" rel="noopener noreferrer">
 			<Button variant="secondary" size="sm" scale="sm" class="rounded-full h-[27px] px-2.5"
 				>Star on Github</Button
 			>
 		</a>
-		<a href="https://go.haptic.md/download" target="_blank" rel="noopener noreferrer">
+		<a href="https://go.typyst.md/download" target="_blank" rel="noopener noreferrer">
 			<Button size="sm" scale="sm" class="rounded-full h-[27px] px-2.5">Download</Button>
 		</a>
 	</div>

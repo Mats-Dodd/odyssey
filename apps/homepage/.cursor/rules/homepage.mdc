@@ -12,7 +12,7 @@ alwaysApply: false
 **Entry Point**: `apps/homepage/src/routes/+layout.svelte`
 
 ### Key Dependencies
-- **Frontend**: SvelteKit, @haptic/ui components, Tailwind CSS, Lucide icons
+- **Frontend**: SvelteKit, @typyst/ui components, Tailwind CSS, Lucide icons
 - **Backend**: Vercel Edge Config for version management
 - **Build**: Vite, TypeScript, pnpm workspaces
 - **Deployment**: SvelteKit adapter-auto (Vercel optimized)
@@ -74,8 +74,8 @@ type UpdateResponse = {
 **Download URL Patterns**:
 ```typescript
 const platforms = {
-  'darwin-x86_64': `${baseUrl}/Haptic_${version}_x64.dmg`,
-  'darwin-aarch64': `${baseUrl}/Haptic_${version}_aarch64.dmg`
+  'darwin-x86_64': `${baseUrl}/Typyst_${version}_x64.dmg`,
+  'darwin-aarch64': `${baseUrl}/Typyst_${version}_aarch64.dmg`
   // Windows/Linux patterns ready for future releases
 };
 ```
@@ -127,17 +127,17 @@ const platforms = {
 **Redirect System** (`src/lib/redirects.ts`):
 ```typescript
 const redirects = {
-  '/app': 'https://app.haptic.md',           // Web app
-  '/github': 'https://go.haptic.md/github', // GitHub repo
-  '/twitter': 'https://go.haptic.md/twitter', // Social
-  '/sponsor': 'https://go.haptic.md/sponsor', // Sponsorship
-  '/tweet': 'https://go.haptic.md/tweet'     // Share link
+  '/app': 'https://app.typyst.md',           // Web app
+  '/github': 'https://go.typyst.md/github', // GitHub repo
+  '/twitter': 'https://go.typyst.md/twitter', // Social
+  '/sponsor': 'https://go.typyst.md/sponsor', // Sponsorship
+  '/tweet': 'https://go.typyst.md/tweet'     // Share link
 };
 ```
 
 **Benefits**:
 - Short, memorable URLs for marketing
-- Analytics tracking via go.haptic.md
+- Analytics tracking via go.typyst.md
 - Easy redirect management without code changes
 - Consistent branding across platforms
 
@@ -217,7 +217,7 @@ const redirects = {
 ## 🎨 Design System Integration
 
 **Shared Components**:
-- Uses @haptic/ui component library
+- Uses @typyst/ui component library
 - Consistent styling with desktop/web apps
 - Tailwind CSS for utility-first styling
 - Custom font loading (Gambarino-Regular)

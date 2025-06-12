@@ -4,9 +4,9 @@
 	import { setSettings } from '@/api/settings';
 	import { activeFile, collectionSettings } from '@/store';
 	import { cn } from '@/utils';
-	import Label from '@haptic/ui/components/label/label.svelte';
-	import * as Select from '@haptic/ui/components/select';
-	import { Switch } from '@haptic/ui/components/switch';
+	import Label from '@typyst/ui/components/label/label.svelte';
+	import * as Select from '@typyst/ui/components/select';
+	import { Switch } from '@typyst/ui/components/switch';
 
 	let selectedFont = { value: 'inter', label: 'Inter' };
 	let selectedFontSize = { value: 'normal', label: 'Normal' };

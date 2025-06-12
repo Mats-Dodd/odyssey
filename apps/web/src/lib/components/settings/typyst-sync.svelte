@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { Button } from '@haptic/ui/components/button';
-	import Label from '@haptic/ui/components/label/label.svelte';
-	import * as Select from '@haptic/ui/components/select';
-	import Switch from '@haptic/ui/components/switch/switch.svelte';
+	import { Button } from '@typyst/ui/components/button';
+	import Label from '@typyst/ui/components/label/label.svelte';
+	import * as Select from '@typyst/ui/components/select';
+	import Switch from '@typyst/ui/components/switch/switch.svelte';
 	import Tooltip from '../shared/tooltip.svelte';
 
 	let autoSync = false;

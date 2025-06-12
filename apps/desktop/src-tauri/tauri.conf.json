@@ -7,7 +7,7 @@
 		"distDir": "../build"
 	},
 	"package": {
-		"productName": "Haptic",
+		"productName": "Typyst",
 		"version": "0.1.4"
 	},
 	"tauri": {
@@ -33,7 +33,7 @@
 				"icons/icon.icns",
 				"icons/icon.ico"
 			],
-			"identifier": "com.haptic.md",
+			"identifier": "com.typyst.md",
 			"longDescription": "",
 			"macOS": {
 				"entitlements": null,
@@ -57,7 +57,7 @@
 		"updater": {
 			"active": true,
 			"endpoints": [
-				"https://haptic.md/api/check-updates?target={{target}}&arch={{arch}}&currentVersion={{current_version}}"
+				"https://typyst.md/api/check-updates?target={{target}}&arch={{arch}}&currentVersion={{current_version}}"
 			],
 			"dialog": true,
 			"windows": {
@@ -67,7 +67,7 @@
 		},
 		"windows": [
 			{
-				"title": "Haptic",
+				"title": "Typyst",
 				"width": 1020,
 				"minWidth": 800,
 				"height": 750,

@@ -119,7 +119,7 @@ impl<R: Runtime> WindowExt for Window<R> {
 
 #[cfg(target_os = "macos")]
 #[derive(Debug)]
-struct HapticAppState {
+struct TypystAppState {
     window: Window,
 }
 
@@ -132,10 +132,10 @@ pub fn setup_mac_window(app: &mut App) {
     use cocoa::delegate;
     use std::ffi::c_void;
 
-    fn with_haptic_app<F: FnOnce(&mut HapticAppState) -> T, T>(this: &Object, func: F) {
+    fn with_typyst_app<F: FnOnce(&mut TypystAppState) -> T, T>(this: &Object, func: F) {
         let ptr = unsafe {
-            let x: *mut c_void = *this.get_ivar("hapticApp");
-            &mut *(x as *mut HapticAppState)
+            let x: *mut c_void = *this.get_ivar("typystApp");
+            &mut *(x as *mut TypystAppState)
         };
         func(ptr);
     }
@@ -161,7 +161,7 @@ pub fn setup_mac_window(app: &mut App) {
         }
         extern "C" fn on_window_did_resize(this: &Object, _cmd: Sel, notification: id) {
             unsafe {
-                with_haptic_app(&*this, |state| {
+                with_typyst_app(&*this, |state| {
                     let id = state.window.ns_window().unwrap() as id;
 
                     set_window_controls_pos(id, WINDOW_CONTROL_PAD_X, WINDOW_CONTROL_PAD_Y);
@@ -246,7 +246,7 @@ pub fn setup_mac_window(app: &mut App) {
         }
         extern "C" fn on_window_did_enter_full_screen(this: &Object, _cmd: Sel, notification: id) {
             unsafe {
-                with_haptic_app(&*this, |state| {
+                with_typyst_app(&*this, |state| {
                     state.window.emit("did-enter-fullscreen", ()).unwrap();
                 });
 
@@ -256,7 +256,7 @@ pub fn setup_mac_window(app: &mut App) {
         }
         extern "C" fn on_window_will_enter_full_screen(this: &Object, _cmd: Sel, notification: id) {
             unsafe {
-                with_haptic_app(&*this, |state| {
+                with_typyst_app(&*this, |state| {
                     state.window.emit("will-enter-fullscreen", ()).unwrap();
                 });
 
@@ -266,7 +266,7 @@ pub fn setup_mac_window(app: &mut App) {
         }
         extern "C" fn on_window_did_exit_full_screen(this: &Object, _cmd: Sel, notification: id) {
             unsafe {
-                with_haptic_app(&*this, |state| {
+                with_typyst_app(&*this, |state| {
                     state.window.emit("did-exit-fullscreen", ()).unwrap();
 
                     let id = state.window.ns_window().unwrap() as id;
@@ -279,7 +279,7 @@ pub fn setup_mac_window(app: &mut App) {
         }
         extern "C" fn on_window_will_exit_full_screen(this: &Object, _cmd: Sel, notification: id) {
             unsafe {
-                with_haptic_app(&*this, |state| {
+                with_typyst_app(&*this, |state| {
                     state.window.emit("will-exit-fullscreen", ()).unwrap();
                 });
 
@@ -343,12 +343,12 @@ pub fn setup_mac_window(app: &mut App) {
         // }
 
         // Are we deallocing this properly ? (I miss safe Rust :(  )
-        let app_state = HapticAppState { window };
+        let app_state = TypystAppState { window };
         let app_box = Box::into_raw(Box::new(app_state)) as *mut c_void;
 
         ns_win.setDelegate_(delegate!("MainWindowDelegate", {
         window: id = ns_win,
-        hapticApp: *mut c_void = app_box,
+        typystApp: *mut c_void = app_box,
         toolbar: id = cocoa::base::nil,
         super_delegate: id = current_delegate,
         // (dealloc) => on_dealloc as extern fn(&Object, Sel),
@@ -383,7 +383,7 @@ pub fn setup_mac_window(app: &mut App) {
     update_window_theme(&window_handle, HexColor::WHITE);
 
     // Control window theme based on app update_window
-    app.listen_global("haptic-bg-changed", move |ev| {
+    app.listen_global("typyst-bg-changed", move |ev| {
         let payload = serde_json::from_str::<&str>(ev.payload().unwrap())
             .unwrap()
             .trim();

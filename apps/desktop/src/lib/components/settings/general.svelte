@@ -1,21 +1,21 @@
 <script lang="ts">
 	import { setSettings } from '@/api/settings';
 	import { collectionSettings } from '@/store';
-	import { Button } from '@haptic/ui/components/button';
-	import Label from '@haptic/ui/components/label/label.svelte';
-	import * as Select from '@haptic/ui/components/select';
-	import Switch from '@haptic/ui/components/switch/switch.svelte';
-	import { cn } from '@haptic/ui/lib/utils';
+	import { Button } from '@typyst/ui/components/button';
+	import Label from '@typyst/ui/components/label/label.svelte';
+	import * as Select from '@typyst/ui/components/select';
+	import Switch from '@typyst/ui/components/switch/switch.svelte';
+	import { cn } from '@typyst/ui/lib/utils';
 	import Icon from '../shared/icon.svelte';
 	import Tooltip from '../shared/tooltip.svelte';
 
-	let selectedTrashLocation: { value: 'system' | 'haptic' | 'delete'; label: string } = {
+	let selectedTrashLocation: { value: 'system' | 'typyst' | 'delete'; label: string } = {
 		value: $collectionSettings.notes.trash_dir,
 		label:
 			$collectionSettings.notes.trash_dir === 'system'
 				? 'System trash'
-				: $collectionSettings.notes.trash_dir === 'haptic'
-					? 'Haptic trash'
+				: $collectionSettings.notes.trash_dir === 'typyst'
+					? 'Typyst trash'
 					: 'Permanently delete'
 	};
 
@@ -127,7 +127,7 @@
 				</Select.Trigger>
 				<Select.Content align="start" class="!w-40">
 					<Select.Item value="system">System trash</Select.Item>
-					<Select.Item value="haptic">Haptic trash</Select.Item>
+					<Select.Item value="typyst">Typyst trash</Select.Item>
 					<Select.Item value="delete">Permanently delete</Select.Item>
 				</Select.Content>
 			</Select.Root>

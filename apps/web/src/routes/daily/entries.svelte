@@ -6,10 +6,10 @@
 	import { activeFile } from '@/store';
 	import type { FileEntry } from '@/types';
 	import { shortcutToString } from '@/utils';
-	import Button from '@haptic/ui/components/button/button.svelte';
-	import * as ContextMenu from '@haptic/ui/components/context-menu';
-	import Label from '@haptic/ui/components/label/label.svelte';
-	import { cn } from '@haptic/ui/lib/utils';
+	import Button from '@typyst/ui/components/button/button.svelte';
+	import * as ContextMenu from '@typyst/ui/components/context-menu';
+	import Label from '@typyst/ui/components/label/label.svelte';
+	import { cn } from '@typyst/ui/lib/utils';
 
 	export let entries: FileEntry[];
 	let groupedEntries: Record<string, FileEntry[]>;

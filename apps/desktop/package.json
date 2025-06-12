@@ -14,8 +14,8 @@
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
-		"@haptic/tailwind-config": "workspace:*",
-		"@haptic/eslint-config": "workspace:*",
+		"@typyst/tailwind-config": "workspace:*",
+		"@typyst/eslint-config": "workspace:*",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-static": "^3.0.1",
 		"@sveltejs/kit": ">=2.4.3",
@@ -44,7 +44,7 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@haptic/ui": "workspace:^",
+		"@typyst/ui": "workspace:^",
 		"@internationalized/date": "^3.5.4",
 		"@tauri-apps/api": "^1.5.3",
 		"@tiptap/core": "^2.2.1",

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Button } from '@haptic/ui/components/button';
+	import { Button } from '@typyst/ui/components/button';
 </script>
 
 <h1 class="bg-blue-500">Welcome to SvelteKit</h1>

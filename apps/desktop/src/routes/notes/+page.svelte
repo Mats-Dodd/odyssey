@@ -7,7 +7,7 @@
 	import { SHORTCUTS } from '@/constants';
 	import { activeFile, collection, collectionSettings } from '@/store';
 	import { shortcutToString } from '@/utils';
-	import { cn } from '@haptic/ui/lib/utils';
+	import { cn } from '@typyst/ui/lib/utils';
 </script>
 
 <div

@@ -26,7 +26,7 @@ export interface CollectionSettingsParams {
 		show_toolbar: boolean;
 	};
 	notes: {
-		trash_dir: 'system' | 'haptic' | 'delete';
+		trash_dir: 'system' | 'typyst' | 'delete';
 		excluded_files: string[];
 	};
 }

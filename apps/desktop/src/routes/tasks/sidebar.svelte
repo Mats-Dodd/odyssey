@@ -7,7 +7,7 @@
 		platform,
 		resizingPageSidebar
 	} from '@/store';
-	import { cn } from '@haptic/ui/lib/utils';
+	import { cn } from '@typyst/ui/lib/utils';
 	import TaskEntries from './task-entries.svelte';
 
 	let startX: number | null;

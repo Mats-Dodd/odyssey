@@ -4,7 +4,7 @@
 </script>
 
 <svelte:head>
-	<title>Haptic | Tasks</title>
+	<title>Typyst | Tasks</title>
 </svelte:head>
 
 <Layout sidebar={TaskSidebar}>

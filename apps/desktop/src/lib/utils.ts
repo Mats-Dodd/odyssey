@@ -147,20 +147,20 @@ export function shortcutToString(shortcut: ShortcutParams) {
 	return keys.join('');
 }
 
-export async function validateHapticFolder(path: string) {
+export async function validateTypystFolder(path: string) {
 	if (path === null) return;
 
-	const hapticFolder = await readDir(path + '/.haptic').catch(() => null);
+	const typystFolder = await readDir(path + '/.typyst').catch(() => null);
 
-	if (!hapticFolder) {
-		// Create .haptic folder
-		await createDir(path + '/.haptic');
+	if (!typystFolder) {
+		// Create .typyst folder
+		await createDir(path + '/.typyst');
 
 		// Create trash folder
-		await createDir(path + '/.haptic/trash');
+		await createDir(path + '/.typyst/trash');
 
 		// Create daily folder
-		await createDir(path + '/.haptic/daily');
+		await createDir(path + '/.typyst/daily');
 	}
 }
 
@@ -250,7 +250,7 @@ export function updateWindowTheme() {
 	const hex = hslToHex(hsl);
 
 	// Set window theme
-	emit('haptic-bg-changed', hex).catch((error) => {
+	emit('typyst-bg-changed', hex).catch((error) => {
 		console.error('Failed to emit event:', error);
 	});
 }

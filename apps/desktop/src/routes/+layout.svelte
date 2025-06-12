@@ -6,8 +6,8 @@
 	import { platform as osPlatform } from '@tauri-apps/api/os';
 	import Command from '@/components/shared/command-menu/command.svelte';
 	import { appTheme, collection, platform } from '@/store';
-	import { updateWindowTheme, validateHapticFolder } from '@/utils';
-	import '@haptic/ui/app.desktop.css';
+	import { updateWindowTheme, validateTypystFolder } from '@/utils';
+	import '@typyst/ui/app.desktop.css';
 	import { BaseDirectory, readTextFile } from '@tauri-apps/api/fs';
 	import { invoke } from '@tauri-apps/api/tauri';
 	import { onMount } from 'svelte';
@@ -40,8 +40,8 @@
 		// Load latest collection on mount
 		await loadLatestCollection();
 
-		// Validate haptic folder
-		await validateHapticFolder($collection);
+		// Validate typyst folder
+		await validateTypystFolder($collection);
 
 		// Load app & collection settings
 		loadSettings(true, true);

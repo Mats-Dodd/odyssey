@@ -12,7 +12,7 @@ alwaysApply: false
 **Entry Point**: `apps/desktop/src/routes/+layout.svelte`
 
 ### Key Dependencies
-- **Frontend**: SvelteKit, TipTap, @haptic/ui components, Tailwind CSS
+- **Frontend**: SvelteKit, TipTap, @typyst/ui components, Tailwind CSS
 - **Backend**: Tauri 1.5.4, Rust plugins (fs-extra, fs-watch, window-state, theme)
 - **Editor**: TipTap with markdown extensions, character count, task lists
 - **Build**: Vite, TypeScript, pnpm workspaces
@@ -59,7 +59,7 @@ apps/desktop/
 - `createNote()`: Generates unique names (Untitled, Untitled 2, etc.)
 - `openNote()`: Loads content into TipTap editor, updates history
 - `saveNote()`: Auto-strips first heading, saves markdown
-- `deleteNote()`: Respects trash settings (system/haptic/.haptic/trash/delete)
+- `deleteNote()`: Respects trash settings (system/typyst/.typyst/trash/delete)
 - `moveNote()`: Handles name conflicts, updates activeFile
 - `duplicateNote()`: Creates "(N)" suffix copies
 
@@ -118,7 +118,7 @@ interface EditorStore extends Writable<Editor> {
 **Tauri Configuration** (`src-tauri/tauri.conf.json`):
 - Auto-updater with public key verification
 - Filesystem permissions: `["*/**", "*/**/.*", "*/**/.*/**"]`
-- Bundle settings: icons, identifier (`com.haptic.md`)
+- Bundle settings: icons, identifier (`com.typyst.md`)
 - Window defaults: 1020x750, min 800x600
 
 **Keyboard Shortcuts** (`src/lib/constants.ts`):
@@ -131,12 +131,12 @@ interface EditorStore extends Writable<Editor> {
 
 **Collection Structure**:
 - Root directory contains markdown files and folders
-- `.haptic/` directory for metadata and settings
+- `.typyst/` directory for metadata and settings
 - `collections.json` in AppData tracks multiple collections
 - Last opened collection auto-loads on startup
 
 **Collection Validation**:
-- `validateHapticFolder()` ensures `.haptic` directory exists
+- `validateTypystFolder()` ensures `.typyst` directory exists
 - Settings inheritance: app → collection → defaults
 - Collection switching preserves per-collection preferences
 
@@ -162,7 +162,7 @@ interface EditorStore extends Writable<Editor> {
 ## 🎯 Key Development Patterns
 
 **Component Architecture**:
-- Shared UI components from `@haptic/ui` package
+- Shared UI components from `@typyst/ui` package
 - Layout components: Header (drag region), Sidebar, Footer
 - Feature components: Editor, Command menu, Search results
 - Icon system with SVG definitions

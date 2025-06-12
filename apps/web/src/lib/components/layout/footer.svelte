@@ -2,11 +2,11 @@
 	import { SHORTCUTS } from '@/constants';
 	import { activeFile } from '@/store';
 	import { shortcutToString, toggleTheme } from '@/utils';
-	import { Button } from '@haptic/ui/components/button';
-	import * as Collapsible from '@haptic/ui/components/collapsible';
-	import { Input } from '@haptic/ui/components/input';
-	import * as Sheet from '@haptic/ui/components/sheet';
-	import { cn } from '@haptic/ui/lib/utils';
+	import { Button } from '@typyst/ui/components/button';
+	import * as Collapsible from '@typyst/ui/components/collapsible';
+	import { Input } from '@typyst/ui/components/input';
+	import * as Sheet from '@typyst/ui/components/sheet';
+	import { cn } from '@typyst/ui/lib/utils';
 	import { ChevronDown } from 'lucide-svelte';
 	import { userPrefersMode } from 'mode-watcher';
 	import { mainCommands as commands, createNoteCommands } from '../shared/command-menu/commands';
@@ -66,14 +66,14 @@
 			</Button>
 		</Tooltip>
 
-		<Tooltip text="Haptic Sync">
+		<Tooltip text="Typyst Sync">
 			<Button
 				size="icon"
 				variant="ghost"
 				class="h-6 w-6 fill-muted-foreground hover:fill-foreground transition-all"
 				scale="md"
 				on:click={() => {
-					settingsStore.set({ isOpen: true, activePage: 'haptic sync' });
+					settingsStore.set({ isOpen: true, activePage: 'typyst sync' });
 				}}
 			>
 				<Icon name="cloudX" class="w-4 h-4" />

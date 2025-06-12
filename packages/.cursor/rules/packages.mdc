@@ -6,24 +6,24 @@ alwaysApply: false
 # Packages Directory Guide
 
 ## Overview
-The `packages/` directory contains shared libraries used across all apps in this monorepo. All packages use the `@haptic` namespace.
+The `packages/` directory contains shared libraries used across all apps in this monorepo. All packages use the `@typyst` namespace.
 
 ## Key Packages
 
-### `@haptic/ui`
+### `@typyst/ui`
 - **Purpose**: Shared Svelte component library
-- **Usage**: Import components like `import { Button } from '@haptic/ui'`
+- **Usage**: Import components like `import { Button } from '@typyst/ui'`
 - **Tech Stack**: Svelte + TypeScript + Tailwind CSS + bits-ui
 - **When to use**: For any UI components needed across desktop/web apps
 - **Note**: Components are accessible by default and follow design system tokens
 
-### `@haptic/eslint-config`
+### `@typyst/eslint-config`
 - **Purpose**: Shared ESLint configuration
-- **Usage**: Extend in app `.eslintrc` files with `"@haptic/eslint-config"`
+- **Usage**: Extend in app `.eslintrc` files with `"@typyst/eslint-config"`
 - **Includes**: TypeScript, Svelte, Prettier, and Turbo optimizations
 - **When to modify**: Only when adding new global linting rules for all apps
 
-### `@haptic/tailwind-config`
+### `@typyst/tailwind-config`
 - **Purpose**: Shared Tailwind CSS configuration and design tokens
 - **Usage**: Import and extend in app `tailwind.config.js` files
 - **Includes**: Custom color system, typography, dark mode, responsive breakpoints
@@ -48,7 +48,7 @@ The `packages/` directory contains shared libraries used across all apps in this
 - Prefer peer dependencies for large libraries when possible
 
 ## Quick Reference
-- **Import UI components**: `@haptic/ui`
-- **Extend ESLint**: `@haptic/eslint-config`
-- **Extend Tailwind**: `@haptic/tailwind-config`
+- **Import UI components**: `@typyst/ui`
+- **Extend ESLint**: `@typyst/eslint-config`
+- **Extend Tailwind**: `@typyst/tailwind-config`
 - **All packages**: Built with TypeScript, optimized for monorepo usage

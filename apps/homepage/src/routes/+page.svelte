@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Tooltip from '$lib/components/tooltip.svelte';
-	import { Button } from '@haptic/ui/components/button';
+	import { Button } from '@typyst/ui/components/button';
 	import banner from '$lib/assets/hero-dark.png';
 
 	import { ArrowUpRight } from 'lucide-svelte';
@@ -17,7 +17,7 @@
 </h1>
 
 <p class="text-secondary-foreground/70 text-center leading-relaxed text-sm sm:text-base z-10">
-	Haptic is a new
+	Typyst is a new
 	<Tooltip type="privacy">
 		<span class="underline decoration-dotted cursor-not-allowed">local-first & privacy-focused</span
 		>,

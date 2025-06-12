@@ -19,9 +19,9 @@
 	} from '@/store';
 	import type { FileEntry, SearchResultParams } from '@/types';
 	import { searchEntries } from '@/utils';
-	import { Button } from '@haptic/ui/components/button';
-	import Label from '@haptic/ui/components/label/label.svelte';
-	import { cn } from '@haptic/ui/lib/utils';
+	import { Button } from '@typyst/ui/components/button';
+	import Label from '@typyst/ui/components/label/label.svelte';
+	import { cn } from '@typyst/ui/lib/utils';
 	import { ALargeSmall, WholeWord } from 'lucide-svelte';
 	import { onDestroy } from 'svelte';
 	import { get } from 'svelte/store';

@@ -3,9 +3,9 @@ description:
 globs: apps/**
 alwaysApply: false
 ---
-# Apps Directory - Haptic Ecosystem
+# Apps Directory - Typyst Ecosystem
 
-The `/apps` directory contains three distinct applications that form the **Haptic** ecosystem - a local-first, privacy-focused markdown note-taking platform. Each app serves a specific purpose while sharing common UI components and architectural patterns.
+The `/apps` directory contains three distinct applications that form the **Typyst** ecosystem - a local-first, privacy-focused markdown note-taking platform. Each app serves a specific purpose while sharing common UI components and architectural patterns.
 
 ## 🖥️ Desktop App (`apps/desktop/`)
 
@@ -18,8 +18,8 @@ The `/apps` directory contains three distinct applications that form the **Hapti
 - **File System**: Tauri plugins for file watching and extended FS operations
 
 ### Key Architecture Points
-- **Product Name**: "Haptic" (v0.1.4)
-- **Bundle ID**: `com.haptic.md`
+- **Product Name**: "Typyst" (v0.1.4)
+- **Bundle ID**: `com.typyst.md`
 - **Window Config**: 1020x750px (min: 800x600px)
 - **Auto-updater**: Integrated with homepage API endpoint
 - **File Permissions**: Full filesystem access with scope `["*/**", "*/**/.*", "*/**/.*/**"]`
@@ -49,7 +49,7 @@ The `/apps` directory contains three distinct applications that form the **Hapti
 
 ## 🌐 Web App (`apps/web/`)
 
-**Primary Purpose**: Browser-based version of Haptic with client-side database for cross-device accessibility.
+**Primary Purpose**: Browser-based version of Typyst with client-side database for cross-device accessibility.
 
 ### Technology Stack
 - **Framework**: SvelteKit
@@ -102,7 +102,7 @@ entry              # Individual notes/files
 
 ## 🏠 Homepage (`apps/homepage/`)
 
-**Primary Purpose**: Marketing site, app distribution, and update management for the Haptic ecosystem.
+**Primary Purpose**: Marketing site, app distribution, and update management for the Typyst ecosystem.
 
 ### Technology Stack
 - **Framework**: SvelteKit (static generation)
@@ -143,9 +143,9 @@ entry              # Individual notes/files
 
 ### Workspace Dependencies
 All apps leverage shared packages:
-- `@haptic/ui` - Common UI component library
-- `@haptic/tailwind-config` - Shared styling configuration
-- `@haptic/eslint-config` - Consistent code standards
+- `@typyst/ui` - Common UI component library
+- `@typyst/tailwind-config` - Shared styling configuration
+- `@typyst/eslint-config` - Consistent code standards
 
 ### Common Patterns
 - **SvelteKit**: All apps use SvelteKit for consistency

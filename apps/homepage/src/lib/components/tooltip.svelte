@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tooltipsOpen, currentOpenTooltip } from '$lib/store';
-	import * as Tooltip from '@haptic/ui/components/tooltip';
+	import * as Tooltip from '@typyst/ui/components/tooltip';
 	import { Monitor, Smartphone, Tablet, Zap } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 
@@ -18,7 +18,7 @@
 
 	onMount(() => {
 		// Fetch GitHub stars
-		fetch('https://api.github.com/repos/chroxify/haptic')
+		fetch('https://api.github.com/repos/chroxify/typyst')
 			.then((response) => response.json())
 			.then((data) => {
 				githubData = {

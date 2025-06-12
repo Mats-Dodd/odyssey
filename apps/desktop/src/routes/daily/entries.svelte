@@ -1,15 +1,15 @@
 <script lang="ts">
 	import type { FileEntry } from '@tauri-apps/api/fs';
-	import Button from '@haptic/ui/components/button/button.svelte';
-	import * as ContextMenu from '@haptic/ui/components/context-menu';
+	import Button from '@typyst/ui/components/button/button.svelte';
+	import * as ContextMenu from '@typyst/ui/components/context-menu';
 	import Icon from '@/components/shared/icon.svelte';
 	import { activeFile, platform } from '@/store';
-	import { cn } from '@haptic/ui/lib/utils';
+	import { cn } from '@typyst/ui/lib/utils';
 	import { deleteNote, openNote } from '@/api/notes';
 	import { shortcutToString, showInFolder } from '@/utils';
 	import Shortcut from '@/components/shared/shortcut.svelte';
 	import { SHORTCUTS } from '@/constants';
-	import Label from '@haptic/ui/components/label/label.svelte';
+	import Label from '@typyst/ui/components/label/label.svelte';
 
 	export let entries: FileEntry[];
 	let groupedEntries: Record<string, FileEntry[]>;

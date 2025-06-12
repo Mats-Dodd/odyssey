@@ -16,9 +16,9 @@
 		platform,
 		resizingPageSidebar
 	} from '@/store';
-	import { Button } from '@haptic/ui/components/button';
-	import Label from '@haptic/ui/components/label/label.svelte';
-	import { cn } from '@haptic/ui/lib/utils';
+	import { Button } from '@typyst/ui/components/button';
+	import Label from '@typyst/ui/components/label/label.svelte';
+	import { cn } from '@typyst/ui/lib/utils';
 	import type { UnlistenFn } from '@tauri-apps/api/event';
 	import type { FileEntry } from '@tauri-apps/api/fs';
 	import { invoke } from '@tauri-apps/api/tauri';

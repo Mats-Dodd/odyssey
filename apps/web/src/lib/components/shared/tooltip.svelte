@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { tooltipsOpen } from '@/store';
-	import * as Tooltip from '@haptic/ui/components/tooltip';
+	import * as Tooltip from '@typyst/ui/components/tooltip';
 	import type { ShortcutParams } from '@/types';
 	import { shortcutToString } from '@/utils';
 	export let text = 'Tooltip';

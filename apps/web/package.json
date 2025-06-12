@@ -12,8 +12,8 @@
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
-		"@haptic/eslint-config": "workspace:*",
-		"@haptic/tailwind-config": "workspace:*",
+		"@typyst/eslint-config": "workspace:*",
+		"@typyst/tailwind-config": "workspace:*",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-static": "^3.0.1",
 		"@sveltejs/kit": ">=2.4.3",
@@ -43,7 +43,7 @@
 	"type": "module",
 	"dependencies": {
 		"@electric-sql/pglite": "^0.2.0",
-		"@haptic/ui": "workspace:^",
+		"@typyst/ui": "workspace:^",
 		"@internationalized/date": "^3.5.4",
 		"@tiptap/core": "^2.2.1",
 		"@tiptap/extension-character-count": "^2.5.0",

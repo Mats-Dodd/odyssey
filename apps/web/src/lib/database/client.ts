@@ -18,7 +18,7 @@ interface LiveQueryReturn<T> {
 function initializeDB() {
 	if (!pgClientPromise) {
 		pgClientPromise = PGlite.create({
-			dataDir: 'idb://haptic',
+			dataDir: 'idb://typyst',
 			extensions: {
 				live
 			}

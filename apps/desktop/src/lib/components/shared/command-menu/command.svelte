@@ -5,7 +5,7 @@
 	import { moveNote, openNote } from '@/api/notes';
 	import { activeFile, appTheme, collection } from '@/store';
 	import { formatTimeAgo, shortcutToString } from '@/utils';
-	import * as Command from '@haptic/ui/components/command';
+	import * as Command from '@typyst/ui/components/command';
 	import { open as browserOpen } from '@tauri-apps/api/shell';
 	import { Twitter } from 'lucide-svelte';
 	import { onMount } from 'svelte';
@@ -303,18 +303,18 @@
 					class="text-foreground/90 gap-3 [&>*]:text-foreground/90 [&>*]:aria-selected:text-foreground [&>*]:fill-foreground/50 [&>*]:aria-selected:fill-foreground"
 					value="sponsor"
 					onSelect={() => {
-						browserOpen('https://go.haptic.md/sponsor');
+						browserOpen('https://go.typyst.md/sponsor');
 						handlePageState(undefined);
 					}}
 				>
 					<Icon name="heart" />
-					Sponsor Haptic
+					Sponsor Typyst
 				</Command.Item>
 				<Command.Item
 					class="text-foreground/90 gap-3 [&>*]:text-foreground/90 [&>*]:aria-selected:text-foreground [&>*]:fill-foreground/50 [&>*]:aria-selected:fill-foreground"
 					value="help"
 					onSelect={() => {
-						browserOpen('https://go.haptic.md/help');
+						browserOpen('https://go.typyst.md/help');
 						handlePageState(undefined);
 					}}
 				>
@@ -326,7 +326,7 @@
 					class="text-foreground/90 gap-3 [&>*]:text-foreground/90 [&>*]:aria-selected:text-foreground [&>*]:fill-foreground/50 [&>*]:aria-selected:fill-foreground"
 					value="feedback"
 					onSelect={() => {
-						browserOpen('https://go.haptic.md/feedback');
+						browserOpen('https://go.typyst.md/feedback');
 						handlePageState(undefined);
 					}}
 				>
@@ -340,7 +340,7 @@
 					class="text-foreground/90 gap-3 [&>*]:text-foreground/90 [&>*]:aria-selected:text-foreground [&>*]:fill-foreground/50 [&>*]:aria-selected:fill-foreground"
 					value="copy_link"
 					onSelect={() => {
-						navigator.clipboard.writeText('https://haptic.md');
+						navigator.clipboard.writeText('https://typyst.md');
 						handlePageState(undefined);
 					}}
 				>
@@ -351,8 +351,8 @@
 					class="text-foreground/90 gap-3 [&>*]:text-foreground/90 [&>*]:aria-selected:stroke-foreground [&>*]:stroke-foreground/50 [&>*]:stroke-[2px]"
 					value="share_on_twitter"
 					onSelect={() => {
-						// Text: Check out this awesome open-source, local-first note-taking app I found! \n\nhttps://haptic.md by @chroxify
-						browserOpen('https://go.haptic.md/tweet');
+						// Text: Check out this awesome open-source, local-first note-taking app I found! \n\nhttps://typyst.md by @chroxify
+						browserOpen('https://go.typyst.md/tweet');
 						handlePageState(undefined);
 					}}
 				>

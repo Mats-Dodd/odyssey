@@ -1,6 +1,6 @@
 <script lang="ts">
 	import PlatformButton from '$lib/components/platform-button.svelte';
-	import Button from '@haptic/ui/components/button/button.svelte';
+	import Button from '@typyst/ui/components/button/button.svelte';
 	import { Globe, Smartphone } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { cubicInOut } from 'svelte/easing';
@@ -91,7 +91,7 @@
 		class="shrink-0 mb-6 sm:mb-10 overflow-clip shadow-lg outline outline-1 outline-gray-300/40 border-[5px] md:border-8 border-white/20 sm:h-fit sm:w-fit h-[120px] w-[120px] rounded-[31px] sm:rounded-[52px]"
 	>
 		<img
-			alt="Haptic Logo"
+			alt="Typyst Logo"
 			loading="lazy"
 			width="180"
 			height="180"
@@ -107,12 +107,12 @@
 	<h1
 		class="text-4xl sm:text-5xl font-medium text-foreground font-['Gambarino-Regular'] text-center"
 	>
-		Get Haptic for Your Device
+		Get Typyst for Your Device
 	</h1>
 
 	<!-- Description -->
 	<p class="text-secondary-foreground/70 text-base sm:text-lg text-center mb-0 sm:mb-4">
-		Download Haptic for Mac, Windows & Mobile (Soon) or use the web app.
+		Download Typyst for Mac, Windows & Mobile (Soon) or use the web app.
 	</p>
 
 	<!-- Selection -->

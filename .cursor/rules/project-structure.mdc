@@ -3,9 +3,9 @@ description:
 globs: 
 alwaysApply: true
 ---
-# Haptic Project Structure Overview
+# Typyst Project Structure Overview
 
-**Haptic** is a local-first, privacy-focused markdown note-taking ecosystem built as a TypeScript monorepo using pnpm workspaces. The project delivers consistent experiences across desktop, web, and marketing platforms through shared components and configurations.
+**Typyst** is a local-first, privacy-focused markdown note-taking ecosystem built as a TypeScript monorepo using pnpm workspaces. The project delivers consistent experiences across desktop, web, and marketing platforms through shared components and configurations.
 
 ## 🏗️ Architecture Overview
 
@@ -16,7 +16,7 @@ odyssey/
 │   ├── web/                # SvelteKit web app with client-side DB
 │   └── homepage/           # Marketing site + distribution APIs
 ├── packages/               # Shared libraries and configurations
-│   ├── ui/                 # Component library (@haptic/ui)
+│   ├── ui/                 # Component library (@typyst/ui)
 │   ├── config-eslint/      # Shared linting rules
 │   └── config-tailwind/    # Design system tokens
 └── [root configs]          # Workspace, build, and tooling setup
@@ -47,19 +47,19 @@ odyssey/
 
 ## 📦 Shared Packages (`/packages`)
 
-### 🎨 **@haptic/ui** - Component Library
+### 🎨 **@typyst/ui** - Component Library
 - **Purpose**: Unified Svelte component system across all apps
 - **Technology**: Svelte + TypeScript + Tailwind + bits-ui primitives
-- **Usage**: `import { Button } from '@haptic/ui'`
+- **Usage**: `import { Button } from '@typyst/ui'`
 - **Contains**: Buttons, dialogs, inputs, navigation, layout components
 
-### 🔧 **@haptic/eslint-config** - Code Standards
+### 🔧 **@typyst/eslint-config** - Code Standards
 - **Purpose**: Consistent linting rules across all applications
 - **Includes**: TypeScript, Svelte, Prettier, Turbo optimizations
 - **Usage**: Extend in app `.eslintrc` files
 - **Impact**: Changes affect all apps immediately
 
-### 🎨 **@haptic/tailwind-config** - Design System
+### 🎨 **@typyst/tailwind-config** - Design System
 - **Purpose**: Shared design tokens, colors, typography, spacing
 - **Includes**: Dark mode, responsive breakpoints, custom color system
 - **Usage**: Import and extend in app `tailwind.config.js`
@@ -81,7 +81,7 @@ cd apps/homepage && pnpm dev
 ```
 
 ### Key Development Patterns
-1. **Shared UI**: All apps use `@haptic/ui` components for consistency
+1. **Shared UI**: All apps use `@typyst/ui` components for consistency
 2. **Workspace Dependencies**: Internal packages use `workspace:*` protocol
 3. **TypeScript**: Full type safety across entire monorepo
 4. **Tailwind CSS**: Shared design system with app-specific extensions

@@ -40,8 +40,8 @@ export const deleteFolder = async (path: string, recursive = false) => {
 		case 'system':
 			await renameFile(path, `${await homeDir()}${OS_TRASH_DIR[get(platform)]}${folderName}`);
 			break;
-		case 'haptic':
-			await renameFile(path, `${get(collection)}/.haptic/trash/${path.split('/').pop()!}`);
+		case 'typyst':
+			await renameFile(path, `${get(collection)}/.typyst/trash/${path.split('/').pop()!}`);
 			break;
 		case 'delete':
 			await removeFile(path);

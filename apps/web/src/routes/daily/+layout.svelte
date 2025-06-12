@@ -4,7 +4,7 @@
 </script>
 
 <svelte:head>
-	<title>Haptic | Daily</title>
+	<title>Typyst | Daily</title>
 </svelte:head>
 
 <Layout sidebar={NotesSidebar}>

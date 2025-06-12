@@ -12,7 +12,7 @@ alwaysApply: false
 **Entry Point**: `apps/web/src/routes/+layout.svelte`
 
 ### Key Dependencies
-- **Frontend**: SvelteKit, TipTap, @haptic/ui components, Tailwind CSS
+- **Frontend**: SvelteKit, TipTap, @typyst/ui components, Tailwind CSS
 - **Database**: PGLite 0.2.0 (PostgreSQL in browser), Drizzle ORM 0.33.0
 - **Editor**: TipTap with markdown extensions, character count, task lists
 - **Build**: Vite, TypeScript, pnpm workspaces
@@ -42,7 +42,7 @@ apps/web/
 
 **Client-Side PostgreSQL** (`src/lib/database/client.ts`):
 - PGLite runs full PostgreSQL in browser via WebAssembly
-- Data persisted in IndexedDB (`idb://haptic`)
+- Data persisted in IndexedDB (`idb://typyst`)
 - Live query support for real-time updates
 - Proxy pattern for lazy database initialization
 
@@ -179,7 +179,7 @@ entry: {
 
 **Collection Validation**:
 - Database constraints ensure data integrity
-- Automatic `.haptic` folder creation in database
+- Automatic `.typyst` folder creation in database
 - Foreign key relationships maintain consistency
 - Migration system handles schema updates
 

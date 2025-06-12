@@ -2,17 +2,17 @@
 	import Icon, { type IconKey } from '$lib/components/shared/icon.svelte';
 	import { SHORTCUTS } from '@/constants';
 	import { settingsStore } from '@/store';
-	import { Button } from '@haptic/ui/components/button';
-	import * as Dialog from '@haptic/ui/components/dialog';
-	import { Label } from '@haptic/ui/components/label';
-	import { Separator } from '@haptic/ui/components/separator';
-	import * as Tabs from '@haptic/ui/components/tabs';
+	import { Button } from '@typyst/ui/components/button';
+	import * as Dialog from '@typyst/ui/components/dialog';
+	import { Label } from '@typyst/ui/components/label';
+	import { Separator } from '@typyst/ui/components/separator';
+	import * as Tabs from '@typyst/ui/components/tabs';
 	import type { ComponentType } from 'svelte';
 	import Shortcut from '../shared/shortcut.svelte';
 	import Appearance from './appearance.svelte';
 	import Editor from './editor.svelte';
 	import General from './general.svelte';
-	import HapticSync from './haptic-sync.svelte';
+	import TypystSync from './typyst-sync.svelte';
 
 	$: ({ isOpen, activePage } = $settingsStore);
 
@@ -36,9 +36,9 @@
 		],
 		Syncronization: [
 			{
-				name: 'Haptic Sync',
+				name: 'Typyst Sync',
 				icon: 'cloudSolid',
-				content: HapticSync
+				content: TypystSync
 			}
 		]
 	};

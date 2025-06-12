@@ -53,14 +53,14 @@ export const GET: RequestHandler = async ({ url }) => {
 	const edgeConfig = (await configClient.getAll()) as { latest_version: string };
 
 	const version = edgeConfig.latest_version.replace('v', '');
-	const baseUrl = `https://github.com/chroxify/haptic/releases/download/${edgeConfig.latest_version}`;
+	const baseUrl = `https://github.com/chroxify/typyst/releases/download/${edgeConfig.latest_version}`;
 
 	const platforms: Record<string, string> = {
-		'darwin-x86_64': `${baseUrl}/Haptic_${version}_x64.dmg`,
-		'darwin-aarch64': `${baseUrl}/Haptic_${version}_aarch64.dmg`
+		'darwin-x86_64': `${baseUrl}/Typyst_${version}_x64.dmg`,
+		'darwin-aarch64': `${baseUrl}/Typyst_${version}_aarch64.dmg`
 		//? Not yet supported
-		// 'linux-x86_64': `${baseUrl}/Haptic_${version}_amd64.AppImage.tar.gz`,
-		// 'windows-x86_64': `${baseUrl}/Haptic_${version}_x64-setup.nsis.zip`
+		// 'linux-x86_64': `${baseUrl}/Typyst_${version}_amd64.AppImage.tar.gz`,
+		// 'windows-x86_64': `${baseUrl}/Typyst_${version}_x64-setup.nsis.zip`
 	};
 
 	const downloadUrl = platforms[`${target}-${arch}`];

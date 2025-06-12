@@ -66,25 +66,25 @@ export const GET: RequestHandler = async ({ url }) => {
 		return new Response(null, { status: 204 });
 	}
 
-	const baseUrl = `https://github.com/chroxify/haptic/releases/download/${edgeConfig.latest_version}`;
+	const baseUrl = `https://github.com/chroxify/typyst/releases/download/${edgeConfig.latest_version}`;
 
 	const platforms: Record<string, { signature: string; url: string }> = {
 		'darwin-x86_64': {
-			signature: await fetchSignature(`${baseUrl}/Haptic_x64.app.tar.gz.sig`),
-			url: `${baseUrl}/Haptic_x64.app.tar.gz`
+			signature: await fetchSignature(`${baseUrl}/Typyst_x64.app.tar.gz.sig`),
+			url: `${baseUrl}/Typyst_x64.app.tar.gz`
 		},
 		'darwin-aarch64': {
-			signature: await fetchSignature(`${baseUrl}/Haptic_aarch64.app.tar.gz.sig`),
-			url: `${baseUrl}/Haptic_aarch64.app.tar.gz`
+			signature: await fetchSignature(`${baseUrl}/Typyst_aarch64.app.tar.gz.sig`),
+			url: `${baseUrl}/Typyst_aarch64.app.tar.gz`
 		}
 		//? Not available yet
 		// 'linux-x86_64': {
-		// 	signature: await fetchSignature(`${baseUrl}/Haptic_${version}_amd64.AppImage.tar.gz.sig`),
-		// 	url: `${baseUrl}/Haptic_${version}_amd64.AppImage.tar.gz`
+		// 	signature: await fetchSignature(`${baseUrl}/Typyst_${version}_amd64.AppImage.tar.gz.sig`),
+		// 	url: `${baseUrl}/Typyst_${version}_amd64.AppImage.tar.gz`
 		// },
 		// 'windows-x86_64': {
-		// 	signature: await fetchSignature(`${baseUrl}/Haptic_${version}_x64-setup.nsis.zip.sig`),
-		// 	url: `${baseUrl}/Haptic_${version}_x64-setup.nsis.zip`
+		// 	signature: await fetchSignature(`${baseUrl}/Typyst_${version}_x64-setup.nsis.zip.sig`),
+		// 	url: `${baseUrl}/Typyst_${version}_x64-setup.nsis.zip`
 		// }
 	};
 

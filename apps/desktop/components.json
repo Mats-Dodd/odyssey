@@ -3,7 +3,7 @@
 	"style": "new-york",
 	"tailwind": {
 		"config": "tailwind.config.js",
-		"css": "@haptic/ui/app.css",
+		"css": "@typyst/ui/app.css",
 		"baseColor": "gray"
 	},
 	"aliases": {

@@ -7,7 +7,7 @@
 	import { moveNote, openNote } from '@/api/notes';
 	import { activeFile, collection } from '@/store';
 	import { formatTimeAgo, shortcutToString } from '@/utils';
-	import * as Command from '@haptic/ui/components/command';
+	import * as Command from '@typyst/ui/components/command';
 	import { Loader, Twitter } from 'lucide-svelte';
 	import { setMode, userPrefersMode } from 'mode-watcher';
 	import { onMount } from 'svelte';
@@ -418,7 +418,7 @@
 			{/if}
 		{:else if page === 'help_and_feedback'}
 			<Command.Group heading="Help & Support">
-				<a href="https://go.haptic.md/sponsor" target="_blank" rel="noopener noreferrer">
+				<a href="https://go.typyst.md/sponsor" target="_blank" rel="noopener noreferrer">
 					<Command.Item
 						class="text-foreground/90 gap-3 [&>*]:text-foreground/90 [&>*]:aria-selected:text-foreground [&>*]:fill-foreground/50 [&>*]:aria-selected:fill-foreground"
 						value="sponsor"
@@ -427,10 +427,10 @@
 						}}
 					>
 						<Icon name="heart" />
-						Sponsor Haptic
+						Sponsor Typyst
 					</Command.Item>
 				</a>
-				<a href="https://go.haptic.md/help" target="_blank" rel="noopener noreferrer">
+				<a href="https://go.typyst.md/help" target="_blank" rel="noopener noreferrer">
 					<Command.Item
 						class="text-foreground/90 gap-3 [&>*]:text-foreground/90 [&>*]:aria-selected:text-foreground [&>*]:fill-foreground/50 [&>*]:aria-selected:fill-foreground"
 						value="help"
@@ -442,7 +442,7 @@
 						Get help
 					</Command.Item>
 				</a>
-				<a href="https://go.haptic.md/feedback" target="_blank" rel="noopener noreferrer">
+				<a href="https://go.typyst.md/feedback" target="_blank" rel="noopener noreferrer">
 					<Command.Item
 						class="text-foreground/90 gap-3 [&>*]:text-foreground/90 [&>*]:aria-selected:text-foreground [&>*]:fill-foreground/50 [&>*]:aria-selected:fill-foreground"
 						value="feedback"
@@ -461,14 +461,14 @@
 					class="text-foreground/90 gap-3 [&>*]:text-foreground/90 [&>*]:aria-selected:text-foreground [&>*]:fill-foreground/50 [&>*]:aria-selected:fill-foreground"
 					value="copy_link"
 					onSelect={() => {
-						navigator.clipboard.writeText('https://haptic.md');
+						navigator.clipboard.writeText('https://typyst.md');
 						handlePageState(undefined);
 					}}
 				>
 					<Icon name="browserUrl" />
 					Copy link
 				</Command.Item>
-				<a href="https://go.haptic.md/tweet" target="_blank" rel="noopener noreferrer">
+				<a href="https://go.typyst.md/tweet" target="_blank" rel="noopener noreferrer">
 					<Command.Item
 						class="text-foreground/90 gap-3 [&>*]:text-foreground/90 [&>*]:aria-selected:stroke-foreground [&>*]:stroke-foreground/50 [&>*]:stroke-[2px]"
 						value="share_on_twitter"

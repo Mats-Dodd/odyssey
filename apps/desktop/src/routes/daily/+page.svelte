@@ -8,7 +8,7 @@
 	import { SHORTCUTS } from '@/constants';
 	import { activeFile, collection, collectionSettings } from '@/store';
 	import { shortcutToString } from '@/utils';
-	import { cn } from '@haptic/ui/lib/utils';
+	import { cn } from '@typyst/ui/lib/utils';
 </script>
 
 <div
@@ -45,7 +45,7 @@
 						class="text-sm gap-1.5 flex text-muted-foreground hover:text-secondary-foreground transition-colors items-center justify-center"
 						on:click={() => {
 							createNote(
-								$collection + '/.haptic/daily',
+								$collection + '/.typyst/daily',
 								new Date().toISOString().split('T')[0] + '.md'
 							);
 						}}

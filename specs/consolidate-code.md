@@ -1,4 +1,4 @@
-# Code Consolidation Plan for Haptic Monorepo
+# Code Consolidation Plan for Typyst Monorepo
 
 ## Overview
 
@@ -143,7 +143,7 @@ export const PLATFORM_FEATURES: Record<string, FeatureFlags> = {
 1. Create `packages/core/package.json`:
 ```json
 {
-  "name": "@haptic/core",
+  "name": "@typyst/core",
   "version": "0.1.0",
   "type": "module",
   "exports": {
@@ -157,7 +157,7 @@ export const PLATFORM_FEATURES: Record<string, FeatureFlags> = {
     "svelte": "^4.0.0"
   },
   "devDependencies": {
-    "@haptic/eslint-config": "workspace:*"
+    "@typyst/eslint-config": "workspace:*"
   }
 }
 ```
@@ -178,8 +178,8 @@ Update both app `package.json` files:
 ```json
 {
   "dependencies": {
-    "@haptic/core": "workspace:*",
-    "@haptic/shared-components": "workspace:*"
+    "@typyst/core": "workspace:*",
+    "@typyst/shared-components": "workspace:*"
   }
 }
 ```
@@ -193,8 +193,8 @@ import { SHORTCUTS } from '@/constants';
 import type { ShortcutParams } from '@/types';
 
 // After  
-import { SHORTCUTS } from '@haptic/core/constants';
-import type { ShortcutParams } from '@haptic/core/types';
+import { SHORTCUTS } from '@typyst/core/constants';
+import type { ShortcutParams } from '@typyst/core/types';
 ```
 
 2. **Remove duplicated files**:
@@ -204,7 +204,7 @@ import type { ShortcutParams } from '@haptic/core/types';
 3. **Platform-specific implementations**:
 ```typescript
 // apps/desktop/src/lib/platform.ts
-import type { PlatformAdapter } from '@haptic/core/adapters';
+import type { PlatformAdapter } from '@typyst/core/adapters';
 import { TauriFileSystemAdapter } from './adapters/filesystem';
 
 export const platformAdapter: PlatformAdapter = {
@@ -214,7 +214,7 @@ export const platformAdapter: PlatformAdapter = {
 };
 
 // apps/web/src/lib/platform.ts  
-import type { PlatformAdapter } from '@haptic/core/adapters';
+import type { PlatformAdapter } from '@typyst/core/adapters';
 import { WebFileSystemAdapter } from './adapters/filesystem';
 
 export const platformAdapter: PlatformAdapter = {
@@ -229,9 +229,9 @@ export const platformAdapter: PlatformAdapter = {
 {
   "scripts": {
     "dev:all": "concurrently \"pnpm dev:desktop\" \"pnpm dev:web\"",
-    "build:packages": "turbo build --filter='@haptic/*'",
-    "test:shared": "turbo test --filter='@haptic/*'",
-    "lint:shared": "turbo lint --filter='@haptic/*'"
+    "build:packages": "turbo build --filter='@typyst/*'",
+    "test:shared": "turbo test --filter='@typyst/*'",
+    "lint:shared": "turbo lint --filter='@typyst/*'"
   }
 }
 ```
@@ -606,7 +606,7 @@ packages/test-utils/
    - Start with critical paths
    - Add to CI/CD pipeline
 
-2. **Create @haptic/api** (3 days)
+2. **Create @typyst/api** (3 days)
    - Reduce API duplication
    - Improve maintainability
    - Enable easier testing
@@ -669,4 +669,4 @@ packages/test-utils/
 
 ---
 
-*These improvements will transform the Haptic codebase into a maintainable, scalable, and developer-friendly monorepo that can support rapid feature development while maintaining high quality standards.*
+*These improvements will transform the Typyst codebase into a maintainable, scalable, and developer-friendly monorepo that can support rapid feature development while maintaining high quality standards.*

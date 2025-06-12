@@ -12,9 +12,9 @@
 		resizingPageSidebar
 	} from '@/store';
 	import type { FileEntry } from '@/types';
-	import { Calendar } from '@haptic/ui/components/calendar';
-	import Label from '@haptic/ui/components/label/label.svelte';
-	import { cn } from '@haptic/ui/lib/utils';
+	import { Calendar } from '@typyst/ui/components/calendar';
+	import Label from '@typyst/ui/components/label/label.svelte';
+	import { cn } from '@typyst/ui/lib/utils';
 	import { CalendarDate, getLocalTimeZone, today, type DateValue } from '@internationalized/date';
 	import { onDestroy } from 'svelte';
 	import Entries from './entries.svelte';
@@ -26,7 +26,7 @@
 	// Watch for changes in the collection
 	async function watchCollection() {
 		const dbWatcher = await pgClient.live.query('SELECT * FROM entry', [], async () => {
-			await fetchCollectionEntries($collection + '/.haptic/daily');
+			await fetchCollectionEntries($collection + '/.typyst/daily');
 		});
 
 		return dbWatcher.unsubscribe;
@@ -37,18 +37,18 @@
 	});
 
 	const stopWatchingCollectionStore = collection.subscribe(async (value) => {
-		entries = await fetchCollectionEntries(value + '/.haptic/daily');
+		entries = await fetchCollectionEntries(value + '/.typyst/daily');
 
 		// Validate if there is a note for today
 		const today = new Date().toISOString().split('T')[0];
 		const dailyExists = entries.some((entry) => entry.path.includes(today));
 
 		if (!dailyExists) {
-			await createNote(value + '/.haptic/daily', today + '.md');
+			await createNote(value + '/.typyst/daily', today + '.md');
 		}
 
 		// Open today's note
-		openNote(value + '/.haptic/daily/' + today + '.md', true);
+		openNote(value + '/.typyst/daily/' + today + '.md', true);
 
 		if (value) {
 			if (stopWatching) stopWatching();
@@ -125,14 +125,14 @@
 
 		// Check if note exists, if not create it - else open it
 		if (!entries.some((entry) => entry.path.includes(noteName))) {
-			createNote($collection + '/.haptic/daily', noteName);
+			createNote($collection + '/.typyst/daily', noteName);
 		} else {
-			openNote($collection + '/.haptic/daily/' + noteName, true);
+			openNote($collection + '/.typyst/daily/' + noteName, true);
 		}
 
 		// Get note element by data-path
 		let noteElement = document.querySelector(
-			`[data-path="${$collection}/.haptic/daily/${noteName}"]`
+			`[data-path="${$collection}/.typyst/daily/${noteName}"]`
 		);
 
 		// If note element is not found, wait for it to be rendered
@@ -141,7 +141,7 @@
 		}
 
 		// Get note element again - this is because if the note is newly created, it might not be rendered yet
-		noteElement = document.querySelector(`[data-path="${$collection}/.haptic/daily/${noteName}"]`);
+		noteElement = document.querySelector(`[data-path="${$collection}/.typyst/daily/${noteName}"]`);
 
 		// Scroll to note element
 		if (noteElement) {
@@ -195,7 +195,7 @@
 	<div
 		class="flex flex-col items-start gap-2 w-full h-full overflow-auto pt-2.5 px-2 pb-2"
 		data-collection-root
-		data-path={$collection + '/.haptic/daily'}
+		data-path={$collection + '/.typyst/daily'}
 	>
 		{#if entries.length === 0}
 			<div class="w-full h-full flex flex-col gap-1 items-center justify-center">

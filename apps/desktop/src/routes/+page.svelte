@@ -45,7 +45,7 @@
 			<button
 				class="text-sm gap-1.5 flex text-muted-foreground hover:text-secondary-foreground transition-colors items-center justify-center"
 				on:click={() => {
-					browserOpen('https://go.haptic.md/github');
+					browserOpen('https://go.typyst.md/github');
 				}}
 			>
 				<Shortcut options={githubShortcut} />
@@ -60,7 +60,7 @@
 			<button
 				class="text-sm gap-1.5 flex text-muted-foreground hover:text-secondary-foreground transition-colors items-center justify-center"
 				on:click={() => {
-					browserOpen('https://go.haptic.md/sponsor');
+					browserOpen('https://go.typyst.md/sponsor');
 				}}
 			>
 				<Shortcut options={sponsorShortcut} />
