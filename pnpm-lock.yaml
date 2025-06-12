@@ -30,6 +30,154 @@ importers:
         specifier: latest
         version: 2.5.4
 
+  apps/app:
+    dependencies:
+      '@electric-sql/pglite':
+        specifier: ^0.2.0
+        version: 0.2.17
+      '@internationalized/date':
+        specifier: ^3.5.4
+        version: 3.8.2
+      '@tiptap/core':
+        specifier: ^2.2.1
+        version: 2.14.0(@tiptap/pm@2.14.0)
+      '@tiptap/extension-character-count':
+        specifier: ^2.5.0
+        version: 2.14.0(@tiptap/core@2.14.0)(@tiptap/pm@2.14.0)
+      '@tiptap/extension-document':
+        specifier: ^2.2.2
+        version: 2.14.0(@tiptap/core@2.14.0)
+      '@tiptap/extension-link':
+        specifier: ^2.2.2
+        version: 2.14.0(@tiptap/core@2.14.0)(@tiptap/pm@2.14.0)
+      '@tiptap/extension-task-item':
+        specifier: ^2.2.2
+        version: 2.14.0(@tiptap/core@2.14.0)(@tiptap/pm@2.14.0)
+      '@tiptap/extension-task-list':
+        specifier: ^2.2.2
+        version: 2.14.0(@tiptap/core@2.14.0)
+      '@tiptap/extension-typography':
+        specifier: ^2.2.2
+        version: 2.14.0(@tiptap/core@2.14.0)
+      '@tiptap/pm':
+        specifier: ^2.2.1
+        version: 2.14.0
+      '@tiptap/starter-kit':
+        specifier: ^2.2.1
+        version: 2.14.0
+      '@typyst/ui':
+        specifier: workspace:^
+        version: link:../../packages/ui
+      bits-ui:
+        specifier: ^0.15.1
+        version: 0.15.1(svelte@4.2.20)
+      clsx:
+        specifier: ^2.1.0
+        version: 2.1.1
+      drizzle-orm:
+        specifier: ^0.33.0
+        version: 0.33.0(@electric-sql/pglite@0.2.17)
+      lucide-svelte:
+        specifier: ^0.321.0
+        version: 0.321.0(svelte@4.2.20)
+      markdown-it:
+        specifier: ^14.1.0
+        version: 14.1.0
+      mode-watcher:
+        specifier: ^0.4.1
+        version: 0.4.1(svelte@4.2.20)
+      tailwind-merge:
+        specifier: ^2.2.1
+        version: 2.6.0
+      tailwind-variants:
+        specifier: ^0.1.20
+        version: 0.1.20(tailwindcss@3.4.17)
+      tiptap-markdown:
+        specifier: ^0.8.9
+        version: 0.8.10(@tiptap/core@2.14.0)
+    devDependencies:
+      '@sveltejs/adapter-auto':
+        specifier: ^3.0.0
+        version: 3.3.1(@sveltejs/kit@2.21.4)
+      '@sveltejs/adapter-static':
+        specifier: ^3.0.1
+        version: 3.0.8(@sveltejs/kit@2.21.4)
+      '@sveltejs/kit':
+        specifier: '>=2.4.3'
+        version: 2.21.4(@sveltejs/vite-plugin-svelte@3.1.2)(svelte@4.2.20)(vite@5.4.19)
+      '@sveltejs/vite-plugin-svelte':
+        specifier: ^3.0.0
+        version: 3.1.2(svelte@4.2.20)(vite@5.4.19)
+      '@tailwindcss/typography':
+        specifier: ^0.5.10
+        version: 0.5.16(tailwindcss@3.4.17)
+      '@types/eslint':
+        specifier: 8.56.0
+        version: 8.56.0
+      '@types/markdown-it':
+        specifier: ^14.1.1
+        version: 14.1.2
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.15.31
+      '@typescript-eslint/eslint-plugin':
+        specifier: ^6.0.0
+        version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.57.1)(typescript@5.8.3)
+      '@typescript-eslint/parser':
+        specifier: ^6.0.0
+        version: 6.21.0(eslint@8.57.1)(typescript@5.8.3)
+      '@typyst/eslint-config':
+        specifier: workspace:*
+        version: link:../../packages/config-eslint
+      '@typyst/tailwind-config':
+        specifier: workspace:*
+        version: link:../../packages/config-tailwind
+      autoprefixer:
+        specifier: ^10.4.17
+        version: 10.4.21(postcss@8.5.4)
+      drizzle-kit:
+        specifier: ^0.24.0
+        version: 0.24.2
+      eslint:
+        specifier: ^8.56.0
+        version: 8.57.1
+      eslint-config-prettier:
+        specifier: ^9.1.0
+        version: 9.1.0(eslint@8.57.1)
+      eslint-plugin-svelte:
+        specifier: ^2.35.1
+        version: 2.46.1(eslint@8.57.1)(svelte@4.2.20)
+      postcss:
+        specifier: ^8.4.33
+        version: 8.5.4
+      postcss-import:
+        specifier: ^16.0.1
+        version: 16.1.0(postcss@8.5.4)
+      prettier:
+        specifier: ^3.1.1
+        version: 3.5.3
+      prettier-plugin-svelte:
+        specifier: ^3.1.2
+        version: 3.4.0(prettier@3.5.3)(svelte@4.2.20)
+      svelte:
+        specifier: ^4.2.7
+        version: 4.2.20
+      svelte-check:
+        specifier: ^3.6.0
+        version: 3.8.6(postcss@8.5.4)(svelte@4.2.20)
+      tailwindcss:
+        specifier: ^3.4.1
+        version: 3.4.17
+      tslib:
+        specifier: ^2.4.1
+        version: 2.8.1
+      typescript:
+        specifier: ^5.0.0
+        version: 5.8.3
+      vite:
+        specifier: '>=5.0.13'
+        version: 5.4.19(@types/node@22.15.31)
+
   apps/desktop:
     dependencies:
       '@internationalized/date':
@@ -178,7 +326,7 @@ importers:
         specifier: '>=5.0.13'
         version: 5.4.19(@types/node@22.15.31)
 
-  apps/homepage:
+  apps/web:
     dependencies:
       '@typyst/ui':
         specifier: workspace:^
@@ -252,154 +400,6 @@ importers:
         version: 8.34.0(eslint@9.28.0)(typescript@5.8.3)
       vite:
         specifier: ^5.0.3
-        version: 5.4.19(@types/node@22.15.31)
-
-  apps/web:
-    dependencies:
-      '@electric-sql/pglite':
-        specifier: ^0.2.0
-        version: 0.2.17
-      '@internationalized/date':
-        specifier: ^3.5.4
-        version: 3.8.2
-      '@tiptap/core':
-        specifier: ^2.2.1
-        version: 2.14.0(@tiptap/pm@2.14.0)
-      '@tiptap/extension-character-count':
-        specifier: ^2.5.0
-        version: 2.14.0(@tiptap/core@2.14.0)(@tiptap/pm@2.14.0)
-      '@tiptap/extension-document':
-        specifier: ^2.2.2
-        version: 2.14.0(@tiptap/core@2.14.0)
-      '@tiptap/extension-link':
-        specifier: ^2.2.2
-        version: 2.14.0(@tiptap/core@2.14.0)(@tiptap/pm@2.14.0)
-      '@tiptap/extension-task-item':
-        specifier: ^2.2.2
-        version: 2.14.0(@tiptap/core@2.14.0)(@tiptap/pm@2.14.0)
-      '@tiptap/extension-task-list':
-        specifier: ^2.2.2
-        version: 2.14.0(@tiptap/core@2.14.0)
-      '@tiptap/extension-typography':
-        specifier: ^2.2.2
-        version: 2.14.0(@tiptap/core@2.14.0)
-      '@tiptap/pm':
-        specifier: ^2.2.1
-        version: 2.14.0
-      '@tiptap/starter-kit':
-        specifier: ^2.2.1
-        version: 2.14.0
-      '@typyst/ui':
-        specifier: workspace:^
-        version: link:../../packages/ui
-      bits-ui:
-        specifier: ^0.15.1
-        version: 0.15.1(svelte@4.2.20)
-      clsx:
-        specifier: ^2.1.0
-        version: 2.1.1
-      drizzle-orm:
-        specifier: ^0.33.0
-        version: 0.33.0(@electric-sql/pglite@0.2.17)
-      lucide-svelte:
-        specifier: ^0.321.0
-        version: 0.321.0(svelte@4.2.20)
-      markdown-it:
-        specifier: ^14.1.0
-        version: 14.1.0
-      mode-watcher:
-        specifier: ^0.4.1
-        version: 0.4.1(svelte@4.2.20)
-      tailwind-merge:
-        specifier: ^2.2.1
-        version: 2.6.0
-      tailwind-variants:
-        specifier: ^0.1.20
-        version: 0.1.20(tailwindcss@3.4.17)
-      tiptap-markdown:
-        specifier: ^0.8.9
-        version: 0.8.10(@tiptap/core@2.14.0)
-    devDependencies:
-      '@sveltejs/adapter-auto':
-        specifier: ^3.0.0
-        version: 3.3.1(@sveltejs/kit@2.21.4)
-      '@sveltejs/adapter-static':
-        specifier: ^3.0.1
-        version: 3.0.8(@sveltejs/kit@2.21.4)
-      '@sveltejs/kit':
-        specifier: '>=2.4.3'
-        version: 2.21.4(@sveltejs/vite-plugin-svelte@3.1.2)(svelte@4.2.20)(vite@5.4.19)
-      '@sveltejs/vite-plugin-svelte':
-        specifier: ^3.0.0
-        version: 3.1.2(svelte@4.2.20)(vite@5.4.19)
-      '@tailwindcss/typography':
-        specifier: ^0.5.10
-        version: 0.5.16(tailwindcss@3.4.17)
-      '@types/eslint':
-        specifier: 8.56.0
-        version: 8.56.0
-      '@types/markdown-it':
-        specifier: ^14.1.1
-        version: 14.1.2
-      '@types/node':
-        specifier: ^22.0.0
-        version: 22.15.31
-      '@typescript-eslint/eslint-plugin':
-        specifier: ^6.0.0
-        version: 6.21.0(@typescript-eslint/parser@6.21.0)(eslint@8.57.1)(typescript@5.8.3)
-      '@typescript-eslint/parser':
-        specifier: ^6.0.0
-        version: 6.21.0(eslint@8.57.1)(typescript@5.8.3)
-      '@typyst/eslint-config':
-        specifier: workspace:*
-        version: link:../../packages/config-eslint
-      '@typyst/tailwind-config':
-        specifier: workspace:*
-        version: link:../../packages/config-tailwind
-      autoprefixer:
-        specifier: ^10.4.17
-        version: 10.4.21(postcss@8.5.4)
-      drizzle-kit:
-        specifier: ^0.24.0
-        version: 0.24.2
-      eslint:
-        specifier: ^8.56.0
-        version: 8.57.1
-      eslint-config-prettier:
-        specifier: ^9.1.0
-        version: 9.1.0(eslint@8.57.1)
-      eslint-plugin-svelte:
-        specifier: ^2.35.1
-        version: 2.46.1(eslint@8.57.1)(svelte@4.2.20)
-      postcss:
-        specifier: ^8.4.33
-        version: 8.5.4
-      postcss-import:
-        specifier: ^16.0.1
-        version: 16.1.0(postcss@8.5.4)
-      prettier:
-        specifier: ^3.1.1
-        version: 3.5.3
-      prettier-plugin-svelte:
-        specifier: ^3.1.2
-        version: 3.4.0(prettier@3.5.3)(svelte@4.2.20)
-      svelte:
-        specifier: ^4.2.7
-        version: 4.2.20
-      svelte-check:
-        specifier: ^3.6.0
-        version: 3.8.6(postcss@8.5.4)(svelte@4.2.20)
-      tailwindcss:
-        specifier: ^3.4.1
-        version: 3.4.17
-      tslib:
-        specifier: ^2.4.1
-        version: 2.8.1
-      typescript:
-        specifier: ^5.0.0
-        version: 5.8.3
-      vite:
-        specifier: '>=5.0.13'
         version: 5.4.19(@types/node@22.15.31)
 
   packages/config-eslint:
