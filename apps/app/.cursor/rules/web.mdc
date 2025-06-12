@@ -9,7 +9,7 @@ alwaysApply: false
 
 **Technology Stack**: SvelteKit + PGLite (PostgreSQL in browser) + Drizzle ORM + TipTap Editor
 **Purpose**: Cross-device accessible note-taking with client-side database persistence
-**Entry Point**: `apps/web/src/routes/+layout.svelte`
+**Entry Point**: `apps/app/src/routes/+layout.svelte`
 
 ### Key Dependencies
 - **Frontend**: SvelteKit, TipTap, @typyst/ui components, Tailwind CSS
@@ -21,7 +21,7 @@ alwaysApply: false
 ## 📁 Directory Structure & Responsibilities
 
 ```
-apps/web/
+apps/app/
 ├── src/
 │   ├── lib/
 │   │   ├── api/           # Business logic (notes, folders, collection)

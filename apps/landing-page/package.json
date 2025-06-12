@@ -1,5 +1,5 @@
 {
-	"name": "homepage",
+	"name": "landing-page",
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
@@ -12,12 +12,13 @@
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
-		"@typyst/eslint-config": "workspace:*",
-		"@typyst/tailwind-config": "workspace:*",
 		"@sveltejs/adapter-auto": "^3.0.0",
+		"@sveltejs/adapter-vercel": "^5.7.2",
 		"@sveltejs/kit": "^2.0.0",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@types/eslint": "^9.6.0",
+		"@typyst/eslint-config": "workspace:*",
+		"@typyst/tailwind-config": "workspace:*",
 		"autoprefixer": "^10.4.17",
 		"eslint": "^9.0.0",
 		"eslint-config-prettier": "^9.1.0",

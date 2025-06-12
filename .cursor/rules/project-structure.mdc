@@ -13,8 +13,8 @@ alwaysApply: true
 odyssey/
 ├── apps/                    # Three main applications
 │   ├── desktop/            # Tauri-based native desktop app
-│   ├── web/                # SvelteKit web app with client-side DB
-│   └── homepage/           # Marketing site + distribution APIs
+│   ├── app/                # SvelteKit web app with client-side DB
+│   └── landing-page/       # Marketing site + distribution APIs
 ├── packages/               # Shared libraries and configurations
 │   ├── ui/                 # Component library (@typyst/ui)
 │   ├── config-eslint/      # Shared linting rules
@@ -35,15 +35,15 @@ odyssey/
 - **Technology**: SvelteKit + PGLite (PostgreSQL in browser) + Drizzle ORM
 - **Purpose**: Cross-device accessible note-taking with client-side database
 - **Key Features**: Offline capability, responsive design, data persistence
-- **Entry Point**: `apps/web/src/routes/+layout.svelte`
-- **Development**: `pnpm dev` (from web directory)
+- **Entry Point**: `apps/app/src/routes/+layout.svelte`
+- **Development**: `pnpm dev` (from app directory)
 
-### 🏠 **Homepage** - Marketing & Distribution
+### 🏠 **Landing Page** - Marketing & Distribution
 - **Technology**: SvelteKit (static) + Vercel Edge Config
 - **Purpose**: Product marketing, app downloads, update management
 - **Key Features**: Landing page, download links, update API for desktop app
-- **Entry Point**: `apps/homepage/src/routes/+page.svelte`
-- **Development**: `pnpm dev` (from homepage directory)
+- **Entry Point**: `apps/landing-page/src/routes/+page.svelte`
+- **Development**: `pnpm dev` (from landing-page directory)
 
 ## 📦 Shared Packages (`/packages`)
 
@@ -71,13 +71,13 @@ odyssey/
 ```bash
 # Root level - start all apps
 pnpm dev:desktop    # Desktop app with Tauri
-pnpm dev:web        # Web app 
-pnpm dev:homepage   # Homepage/marketing site
+pnpm dev:app        # Web app 
+pnpm dev:landing-page   # Landing page/marketing site
 
 # Individual app development
 cd apps/desktop && pnpm dev:tauri
-cd apps/web && pnpm dev
-cd apps/homepage && pnpm dev
+cd apps/app && pnpm dev
+cd apps/landing-page && pnpm dev
 ```
 
 ### Key Development Patterns
@@ -102,13 +102,13 @@ cd apps/homepage && pnpm dev
 - File Operations: Look for `tauri-plugin-fs-*` usage
 
 **Web App Features**  
-- Layout: `apps/web/src/routes/+layout.svelte`
-- Database: `apps/web/src/lib/database/schema.ts`
-- Migrations: `apps/web/src/lib/database/migrations/`
+- Layout: `apps/app/src/routes/+layout.svelte`
+- Database: `apps/app/src/lib/database/schema.ts`
+- Migrations: `apps/app/src/lib/database/migrations/`
 
 **Marketing/Distribution**
-- Landing: `apps/homepage/src/routes/+page.svelte`
-- APIs: `apps/homepage/src/routes/api/`
+- Landing: `apps/landing-page/src/routes/+page.svelte`
+- APIs: `apps/landing-page/src/routes/api/`
 - Updates: Check-updates and download endpoints
 
 **Global Changes**
@@ -121,7 +121,7 @@ cd apps/homepage && pnpm dev
 ### Data Flow
 - **Desktop**: Local filesystem → Tauri APIs → Svelte components
 - **Web**: PGLite (browser DB) → Drizzle ORM → Svelte components  
-- **Homepage**: Static generation → Vercel Edge → API endpoints
+- **Landing Page**: Static generation → Vercel Edge → API endpoints
 
 ### Shared Dependencies
 - **SvelteKit**: Consistent framework across all apps
@@ -130,7 +130,7 @@ cd apps/homepage && pnpm dev
 - **Vite**: Build tool and development server
 
 ### Key Integrations
-- **Auto-updater**: Desktop app ↔ Homepage API
+- **Auto-updater**: Desktop app ↔ Landing Page API
 - **Component Library**: All apps ← UI package
 - **Design System**: All apps ← Tailwind config
 - **Code Standards**: All apps ← ESLint config
@@ -141,13 +141,13 @@ cd apps/homepage && pnpm dev
 2. **Local-First Design**: Desktop prioritizes filesystem, web uses client-side DB
 3. **Shared UI Library**: Ensures consistent user experience across platforms
 4. **Progressive Enhancement**: Web app works offline, desktop has native features
-5. **Centralized Distribution**: Homepage manages updates and downloads
+5. **Centralized Distribution**: Landing Page manages updates and downloads
 6. **TypeScript Everywhere**: Type safety across entire codebase
 
 ## 🚀 Deployment Strategy
 
-- **Desktop**: Tauri builds native binaries, distributed via homepage
+- **Desktop**: Tauri builds native binaries, distributed via landing page
 - **Web**: SvelteKit static/SSR deployment with Docker support
-- **Homepage**: Static site generation for marketing + API routes
+- **Landing Page**: Static site generation for marketing + API routes
 
 This architecture enables rapid cross-platform development while maintaining consistency, performance, and a great developer experience.

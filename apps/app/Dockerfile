@@ -32,7 +32,7 @@ RUN pnpm install
 COPY --from=builder /app/out/full/ .
 
 # Install @tailwindcss/typography in the web workspace
-RUN cd apps/web && pnpm add -D @tailwindcss/typography
+RUN cd apps/app && pnpm add -D @tailwindcss/typography
 
 # Build the project
 RUN pnpm run build --filter=web
@@ -41,9 +41,9 @@ RUN pnpm run build --filter=web
 FROM nginx:stable AS runner
 WORKDIR /app
 
-# Copy nginx.conf from the apps/web directory
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
-COPY --from=installer /app/apps/web/build /usr/share/nginx/html
+# Copy nginx.conf from the apps/app directory
+COPY apps/app/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=installer /app/apps/app/build /usr/share/nginx/html
 
 # Expose the port the app runs on
 EXPOSE 80

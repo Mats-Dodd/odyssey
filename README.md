@@ -65,7 +65,7 @@ If you're interested in self-hosting your own web instance of Typyst, you can do
 
 You can one-click deploy your own instance of Typyst on Vercel. Just click the button below and follow the instructions:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/chroxify/typyst&project-name=typyst-web&repository-name=typyst-web&root-directory=apps/web)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/chroxify/typyst&project-name=typyst-app&repository-name=typyst-app&root-directory=apps/app)
 
 ### Docker
 

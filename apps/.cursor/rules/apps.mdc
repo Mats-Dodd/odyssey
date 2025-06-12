@@ -47,7 +47,7 @@ The `/apps` directory contains three distinct applications that form the **Typys
 
 ---
 
-## 🌐 Web App (`apps/web/`)
+## 🌐 Web App (`apps/app/`)
 
 **Primary Purpose**: Browser-based version of Typyst with client-side database for cross-device accessibility.
 
@@ -100,7 +100,7 @@ entry              # Individual notes/files
 
 ---
 
-## 🏠 Homepage (`apps/homepage/`)
+## 🏠 Landing Page (`apps/landing-page/`)
 
 **Primary Purpose**: Marketing site, app distribution, and update management for the Typyst ecosystem.
 
@@ -157,13 +157,13 @@ All apps leverage shared packages:
 ```bash
 # Root level commands
 pnpm dev:desktop    # Start desktop app
-pnpm dev:web        # Start web app  
-pnpm dev:homepage   # Start homepage
+pnpm dev:app        # Start web app  
+pnpm dev:landing-page   # Start landing page
 
 # Individual app development
 cd apps/desktop && pnpm dev:tauri
-cd apps/web && pnpm dev
-cd apps/homepage && pnpm dev
+cd apps/app && pnpm dev
+cd apps/landing-page && pnpm dev
 ```
 
 ## Navigation Guide for Developers
@@ -175,15 +175,15 @@ cd apps/homepage && pnpm dev
 4. **File Operations**: Look for `tauri-plugin-fs-*` usage in components
 
 ### For Web App Development
-1. **Start Here**: `apps/web/src/routes/+layout.svelte` - Web app structure
-2. **Database**: `apps/web/src/lib/database/` - Schema and client setup
-3. **Migrations**: `apps/web/src/lib/database/migrations/` - DB evolution
+1. **Start Here**: `apps/app/src/routes/+layout.svelte` - Web app structure
+2. **Database**: `apps/app/src/lib/database/` - Schema and client setup
+3. **Migrations**: `apps/app/src/lib/database/migrations/` - DB evolution
 4. **Local Storage**: PGLite integration in `client.ts`
 
-### For Homepage Development
-1. **Start Here**: `apps/homepage/src/routes/+page.svelte` - Landing page
-2. **API Logic**: `apps/homepage/src/routes/api/` - Update/download services
-3. **Assets**: `apps/homepage/src/lib/assets/` - Images and static content
+### For Landing Page Development
+1. **Start Here**: `apps/landing-page/src/routes/+page.svelte` - Landing page
+2. **API Logic**: `apps/landing-page/src/routes/api/` - Update/download services
+3. **Assets**: `apps/landing-page/src/lib/assets/` - Images and static content
 
 ### Cross-App Shared Code
 - **UI Components**: `packages/ui/components/` - Reusable components

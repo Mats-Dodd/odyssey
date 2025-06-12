@@ -3,8 +3,14 @@
   "private": true,
   "scripts": {
     "build": "turbo run build",
+    "build:landing-page": "turbo run build --filter=landing-page",
+    "build:app": "turbo run build --filter=app",
     "dev": "turbo run dev",
     "dev:desktop": "cd apps/desktop && pnpm dev:tauri",
+    "deploy:landing-page": "cd apps/landing-page && vercel --prod",
+    "deploy:app": "cd apps/app && vercel --prod",
+    "deploy:preview:landing-page": "cd apps/landing-page && vercel",
+    "deploy:preview:app": "cd apps/app && vercel",
     "lint": "turbo run lint",
     "format": "prettier --write .",
     "prepare": "husky"
