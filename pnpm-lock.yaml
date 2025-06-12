@@ -102,6 +102,9 @@ importers:
       '@sveltejs/adapter-static':
         specifier: ^3.0.1
         version: 3.0.8(@sveltejs/kit@2.21.4)
+      '@sveltejs/adapter-vercel':
+        specifier: ^5.7.2
+        version: 5.7.2(@sveltejs/kit@2.21.4)
       '@sveltejs/kit':
         specifier: '>=2.4.3'
         version: 2.21.4(@sveltejs/vite-plugin-svelte@3.1.2)(svelte@4.2.20)(vite@5.4.19)

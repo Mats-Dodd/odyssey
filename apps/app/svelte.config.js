@@ -1,4 +1,4 @@
-import adapter from '@sveltejs/adapter-static';
+import adapter from '@sveltejs/adapter-vercel';
 import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 
 /** @type {import('@sveltejs/kit').Config} */
@@ -8,13 +8,8 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		// Using adapter-static for client-side app with PGLite database
-		adapter: adapter({
-			// Enable SPA mode for client-side routing
-			fallback: 'index.html',
-			precompress: true,
-			strict: true
-		}),
+		// Using adapter-vercel for Vercel deployment with zero-config mode
+		adapter: adapter(),
 		alias: {
 			'@/*': './src/lib'
 		}

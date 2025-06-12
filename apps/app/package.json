@@ -12,10 +12,9 @@
 		"format": "prettier --write ."
 	},
 	"devDependencies": {
-		"@typyst/eslint-config": "workspace:*",
-		"@typyst/tailwind-config": "workspace:*",
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-static": "^3.0.1",
+		"@sveltejs/adapter-vercel": "^5.7.2",
 		"@sveltejs/kit": ">=2.4.3",
 		"@sveltejs/vite-plugin-svelte": "^3.0.0",
 		"@tailwindcss/typography": "^0.5.10",
@@ -24,6 +23,8 @@
 		"@types/node": "^22.0.0",
 		"@typescript-eslint/eslint-plugin": "^6.0.0",
 		"@typescript-eslint/parser": "^6.0.0",
+		"@typyst/eslint-config": "workspace:*",
+		"@typyst/tailwind-config": "workspace:*",
 		"autoprefixer": "^10.4.17",
 		"drizzle-kit": "^0.24.0",
 		"eslint": "^8.56.0",
@@ -43,7 +44,6 @@
 	"type": "module",
 	"dependencies": {
 		"@electric-sql/pglite": "^0.2.0",
-		"@typyst/ui": "workspace:^",
 		"@internationalized/date": "^3.5.4",
 		"@tiptap/core": "^2.2.1",
 		"@tiptap/extension-character-count": "^2.5.0",
@@ -54,6 +54,7 @@
 		"@tiptap/extension-typography": "^2.2.2",
 		"@tiptap/pm": "^2.2.1",
 		"@tiptap/starter-kit": "^2.2.1",
+		"@typyst/ui": "workspace:^",
 		"bits-ui": "^0.15.1",
 		"clsx": "^2.1.0",
 		"drizzle-orm": "^0.33.0",
