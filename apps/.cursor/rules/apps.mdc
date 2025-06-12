@@ -100,7 +100,7 @@ entry              # Individual notes/files
 
 ---
 
-## 🏠 Landing Page (`apps/landing-page/`)
+## 🏠 Web (`apps/web/`)
 
 **Primary Purpose**: Marketing site, app distribution, and update management for the Typyst ecosystem.
 
@@ -158,12 +158,12 @@ All apps leverage shared packages:
 # Root level commands
 pnpm dev:desktop    # Start desktop app
 pnpm dev:app        # Start web app  
-pnpm dev:landing-page   # Start landing page
+pnpm dev:web        # Start web/marketing site
 
 # Individual app development
 cd apps/desktop && pnpm dev:tauri
 cd apps/app && pnpm dev
-cd apps/landing-page && pnpm dev
+cd apps/web && pnpm dev
 ```
 
 ## Navigation Guide for Developers
@@ -180,10 +180,10 @@ cd apps/landing-page && pnpm dev
 3. **Migrations**: `apps/app/src/lib/database/migrations/` - DB evolution
 4. **Local Storage**: PGLite integration in `client.ts`
 
-### For Landing Page Development
-1. **Start Here**: `apps/landing-page/src/routes/+page.svelte` - Landing page
-2. **API Logic**: `apps/landing-page/src/routes/api/` - Update/download services
-3. **Assets**: `apps/landing-page/src/lib/assets/` - Images and static content
+### For Web Development
+1. **Start Here**: `apps/web/src/routes/+page.svelte` - Landing page
+2. **API Logic**: `apps/web/src/routes/api/` - Update/download services
+3. **Assets**: `apps/web/src/lib/assets/` - Images and static content
 
 ### Cross-App Shared Code
 - **UI Components**: `packages/ui/components/` - Reusable components

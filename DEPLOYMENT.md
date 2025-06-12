@@ -1,6 +1,6 @@
 # 🚀 Typyst Vercel Deployment Guide
 
-This guide covers deploying both the **Landing Page** (typyst.com) and **Web App** (app.typyst.com) to Vercel with your custom domain.
+This guide covers deploying both the **Web** (typyst.com) and **App** (app.typyst.com) to Vercel with your custom domain.
 
 ## 📋 Pre-Deployment Checklist
 
@@ -11,19 +11,19 @@ This guide covers deploying both the **Landing Page** (typyst.com) and **Web App
 
 ## 🌐 Domain Strategy
 
-- **Primary**: `typyst.com` → Landing Page (marketing site)
-- **Subdomain**: `app.typyst.com` → Web App (note-taking interface)
+- **Primary**: `typyst.com` → Web (marketing site)
+- **Subdomain**: `app.typyst.com` → App (note-taking interface)
 - **Redirect**: `www.typyst.com` → `typyst.com`
 
 ## 🏗️ Deployment Architecture
 
-### Landing Page App (typyst.com)
+### Web App (typyst.com)
 - **Framework**: SvelteKit with `@sveltejs/adapter-vercel`
 - **Features**: Marketing site + API routes for desktop app
 - **Functions**: `/api/check-updates` and `/api/download`
 - **External Services**: Vercel Edge Config for version management
 
-### Web App (app.typyst.com)
+### App (app.typyst.com)
 - **Framework**: SvelteKit with `@sveltejs/adapter-static`
 - **Features**: Client-side note-taking with PGLite database
 - **Architecture**: Static SPA with offline-first capabilities
@@ -33,10 +33,10 @@ This guide covers deploying both the **Landing Page** (typyst.com) and **Web App
 First, ensure both apps build successfully:
 
 ```bash
-# Test landing page build
-pnpm build:landing-page
+# Test web build
+pnpm build:web
 
-# Test web app build
+# Test app build
 pnpm build:app
 
 # Test all builds
@@ -48,10 +48,10 @@ pnpm build
 ### Option A: Vercel CLI (Recommended for first deployment)
 
 ```bash
-# Deploy landing page (production)
-pnpm deploy:landing-page
+# Deploy web (production)
+pnpm deploy:web
 
-# Deploy web app (production)
+# Deploy app (production)
 pnpm deploy:app
 ```
 
@@ -62,17 +62,17 @@ pnpm deploy:app
 3. Import your GitHub repository
 4. Create two separate projects:
 
-#### Landing Page Project Configuration:
+#### Web Project Configuration:
 ```
-Project Name: typyst-landing-page
-Root Directory: apps/landing-page
+Project Name: typyst-web
+Root Directory: apps/web
 Build Command: pnpm build
 Output Directory: build
 Install Command: pnpm install --frozen-lockfile
 Node.js Version: 18.x
 ```
 
-#### Web App Project Configuration:
+#### App Project Configuration:
 ```
 Project Name: typyst-app
 Root Directory: apps/app
@@ -86,12 +86,12 @@ Node.js Version: 18.x
 
 ### In Vercel Dashboard:
 
-#### Landing Page Project:
+#### Web Project:
 1. Go to Project Settings → Domains
 2. Add `typyst.com` as custom domain
 3. Add `www.typyst.com` as redirect to `typyst.com`
 
-#### Web App Project:
+#### App Project:
 1. Go to Project Settings → Domains
 2. Add `app.typyst.com` as custom domain
 
@@ -115,7 +115,7 @@ Value: cname.vercel-dns.com
 
 ## ⚙️ Step 4: Environment Variables
 
-### Landing Page App Environment Variables:
+### Web App Environment Variables:
 
 Set these in Vercel Dashboard → Project Settings → Environment Variables:
 
@@ -127,7 +127,7 @@ EDGE_CONFIG=your_edge_config_url_here
 VERCEL_ANALYTICS_ID=your_analytics_id
 ```
 
-### Web App Environment Variables:
+### App Environment Variables:
 
 ```bash
 # Optional: Analytics
@@ -149,14 +149,14 @@ Both apps are configured with security headers in their `vercel.json` files:
 
 ## ✅ Step 6: Post-Deployment Verification
 
-### Landing Page (typyst.com):
+### Web (typyst.com):
 - [ ] Site loads correctly
 - [ ] SSL certificate is active (🔒)
 - [ ] `/api/check-updates` endpoint responds
 - [ ] `/api/download` endpoint responds
 - [ ] Desktop app can fetch updates
 
-### Web App (app.typyst.com):
+### App (app.typyst.com):
 - [ ] App loads correctly
 - [ ] SSL certificate is active (🔒)
 - [ ] Client-side routing works
@@ -173,7 +173,7 @@ Both apps are configured with security headers in their `vercel.json` files:
 ### Manual Deployments:
 ```bash
 # Preview deployments
-pnpm deploy:preview:landing-page
+pnpm deploy:preview:web
 pnpm deploy:preview:app
 ```
 
@@ -184,11 +184,11 @@ pnpm deploy:preview:app
 pnpm dev  # Starts all apps
 
 # Individual app development
-cd apps/landing-page && pnpm dev
+cd apps/web && pnpm dev
 cd apps/app && pnpm dev
 
 # Build verification
-pnpm build:landing-page
+pnpm build:web
 pnpm build:app
 
 # Lint check
@@ -199,13 +199,13 @@ pnpm lint
 
 Both apps are configured for optimal performance:
 
-### Landing Page:
+### Web:
 - Edge functions for API routes
 - Static asset caching
 - Compression enabled
 - CDN distribution
 
-### Web App:
+### App:
 - Static site generation
 - Client-side caching
 - Service worker ready

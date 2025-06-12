@@ -3,13 +3,13 @@ description:
 globs: apps/homepage/**
 alwaysApply: false
 ---
-# Landing Page App Architecture & Development Guide
+# Web App Architecture & Development Guide
 
 ## 🏗️ Core Architecture
 
 **Technology Stack**: SvelteKit + Vercel Edge Config + Static Site Generation
 **Purpose**: Marketing site, app downloads, and update management for desktop app
-**Entry Point**: `apps/landing-page/src/routes/+layout.svelte`
+**Entry Point**: `apps/web/src/routes/+layout.svelte`
 
 ### Key Dependencies
 - **Frontend**: SvelteKit, @typyst/ui components, Tailwind CSS, Lucide icons
@@ -20,7 +20,7 @@ alwaysApply: false
 ## 📁 Directory Structure & Responsibilities
 
 ```
-apps/landing-page/
+apps/web/
 ├── src/
 │   ├── lib/
 │   │   ├── components/    # UI components (tooltip, platform-button)
