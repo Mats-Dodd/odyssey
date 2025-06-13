@@ -6,7 +6,6 @@
     "build:web": "turbo run build --filter=web",
     "build:app": "turbo run build --filter=app",
     "dev": "turbo run dev",
-    "dev:desktop": "cd apps/desktop && pnpm dev:tauri",
     "deploy:web": "cd apps/web && vercel --prod",
     "deploy:app": "cd apps/app && vercel --prod",
     "deploy:preview:web": "cd apps/web && vercel",

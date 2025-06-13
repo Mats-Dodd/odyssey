@@ -3,7 +3,8 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "tauri dev",
+		"dev:vite": "vite dev",
 		"dev:tauri": "tauri dev",
 		"tauri": "tauri",
 		"build": "vite build",
