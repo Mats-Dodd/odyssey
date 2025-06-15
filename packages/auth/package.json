@@ -1,0 +1,44 @@
+{
+	"name": "@typyst/auth",
+	"version": "0.0.0",
+	"type": "module",
+	"main": "dist/index.js",
+	"module": "dist/index.js",
+	"types": "dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		},
+		"./client": {
+			"types": "./dist/client-entry.d.ts",
+			"import": "./dist/client-entry.js"
+		},
+		"./server": {
+			"types": "./dist/server-entry.d.ts",
+			"import": "./dist/server-entry.js"
+		}
+	},
+	"files": [
+		"dist"
+	],
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"lint": "eslint .",
+		"type-check": "tsc --noEmit"
+	},
+	"dependencies": {
+		"better-auth": "^1.0.0",
+		"nanostores": "^0.10.0"
+	},
+	"devDependencies": {
+		"@typyst/eslint-config": "workspace:*",
+		"@types/node": "^20.0.0",
+		"svelte": "^4.2.8",
+		"typescript": "^5.0.0"
+	},
+	"peerDependencies": {
+		"svelte": "^4.0.0"
+	}
+} 

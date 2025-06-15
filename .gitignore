@@ -29,6 +29,10 @@ yarn-error.log*
 # turbo
 .turbo
 
+# build outputs
+dist/
+build/
+
 # Added by Task Master AI
 # Logs
 logs
