@@ -1,23 +1,23 @@
-# Task 28: Create @typyst/db Package with Dual-Database Architecture
+# Task 28: Create @typyst/db Package with Supabase-Centered Architecture
 
 ## Overview
 
-Create a centralized database package that provides a single source of truth for database schemas and typed database clients while respecting the dual-database architecture (Supabase for auth + PGLite for app data).
+Create a centralized database package that provides a single source of truth for database schemas and typed database clients using Supabase as the primary database. PGLite configuration is included for future bootstrap functionality but not actively used in the initial implementation.
 
 ## Context
 
-Currently, the web application has mixed database logic scattered across different files, and we need to centralize this into a shared package that can be used across the monorepo. The dual-database architecture must be preserved:
+Currently, the web application has mixed database logic scattered across different files, and we need to centralize this into a shared package that can be used across the monorepo. For now, all data will be stored in Supabase (PostgreSQL) including both authentication and application data.
 
-- **Supabase (PostgreSQL)**: Used for authentication tables managed by Better Auth
-- **PGLite (Browser PostgreSQL)**: Used for application data (collections, entries) in the web app
+**Future Considerations:** PGLite will eventually be used with a bootstrap functionality that syncs data from Supabase to the browser's local database, but this is not part of the current implementation.
 
 ## Goals
 
-1. Centralize all database schemas and types
-2. Provide typed database clients for both Supabase and PGLite
-3. Separate auth tables from app tables
-4. Set up proper migrations structure
+1. Centralize all database schemas and types in Supabase
+2. Provide typed database client for Supabase
+3. Include auth tables (Better Auth) and app tables in unified schema
+4. Set up proper migrations structure for Supabase
 5. Enable TypeScript sub-path exports for clean imports
+6. Keep PGLite configuration ready for future bootstrap implementation
 
 ## Implementation Details
 
@@ -32,14 +32,14 @@ packages/db/
 │   │   └── index.ts        # Re-export all schemas
 │   ├── config/
 │   │   ├── supabase.ts     # Supabase connection config
-│   │   └── pglite.ts       # PGLite config
+│   │   └── pglite.ts       # PGLite config (for future use)
 │   ├── client/
-│   │   ├── auth-db.ts      # Drizzle client for Supabase (auth tables only)
-│   │   └── app-db.ts       # Drizzle client for PGLite (app tables only)
+│   │   ├── supabase-db.ts  # Drizzle client for Supabase (all tables)
+│   │   └── pglite-db.ts    # PGLite client (for future bootstrap use)
 │   └── index.ts            # Main exports
 ├── migrations/
-│   ├── auth/               # Supabase migrations
-│   └── app/                # PGLite migrations
+│   ├── supabase/           # Supabase migrations
+│   └── pglite/             # PGLite migrations (for future use)
 ├── drizzle.config.ts       # Drizzle configuration
 └── package.json
 ```
@@ -118,6 +118,7 @@ export const authSchema = {
 **App Schema (packages/db/src/schema/app.ts):**
 ```typescript
 import { pgTable, text, timestamp, integer, boolean } from 'drizzle-orm/pg-core';
+import { user } from './auth.js';
 
 export const collection = pgTable('collection', {
   id: text('id').primaryKey(),
@@ -125,7 +126,7 @@ export const collection = pgTable('collection', {
   description: text('description'),
   color: text('color'),
   icon: text('icon'),
-  userId: text('user_id'), // Note: No FK constraint since user table is in different DB
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
@@ -136,7 +137,7 @@ export const collectionSettings = pgTable('collection_settings', {
   sortBy: text('sort_by'),
   sortOrder: text('sort_order'),
   viewMode: text('view_mode'),
-  userId: text('user_id'), // Note: No FK constraint since user table is in different DB
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
@@ -146,7 +147,7 @@ export const entry = pgTable('entry', {
   title: text('title').notNull(),
   content: text('content'),
   collectionId: text('collection_id').notNull().references(() => collection.id, { onDelete: 'cascade' }),
-  userId: text('user_id'), // Note: No FK constraint since user table is in different DB
+  userId: text('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull()
 });
@@ -169,61 +170,87 @@ export const appSchema = {
 
 ### Database Clients
 
-**Auth Database Client (packages/db/src/client/auth-db.ts):**
+**Supabase Database Client (packages/db/src/client/supabase-db.ts):**
 ```typescript
 import { drizzle } from 'drizzle-orm/postgres-js';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import postgres from 'postgres';
 import * as authSchema from '../schema/auth.js';
+import * as appSchema from '../schema/app.js';
 
-export interface AuthDatabaseConfig {
+// Combine all schemas
+const schema = {
+  ...authSchema,
+  ...appSchema
+};
+
+export interface SupabaseDatabaseConfig {
   connectionString: string;
+  maxConnections?: number;
 }
 
-export function createAuthDatabase(config: AuthDatabaseConfig) {
-  const sql = postgres(config.connectionString);
-  const db = drizzle(sql, { schema: authSchema });
+export function createSupabaseDatabase(config: SupabaseDatabaseConfig) {
+  const sql = postgres(config.connectionString, {
+    max: config.maxConnections || 10
+  });
+  
+  const db = drizzle(sql, { schema });
   
   return {
     db,
     sql,
     adapter: drizzleAdapter(db, {
       provider: 'pg',
-      schema: authSchema
+      schema: authSchema // Better Auth only needs auth schema
     }),
-    schema: authSchema
+    schema,
+    authSchema,
+    appSchema
   };
 }
 
-export type AuthDatabase = ReturnType<typeof createAuthDatabase>;
+export type SupabaseDatabase = ReturnType<typeof createSupabaseDatabase>;
 ```
 
-**App Database Client (packages/db/src/client/app-db.ts):**
+**PGLite Database Client (packages/db/src/client/pglite-db.ts) - For Future Use:**
 ```typescript
 import { drizzle } from 'drizzle-orm/pglite';
 import { PGlite } from '@electric-sql/pglite';
+import * as authSchema from '../schema/auth.js';
 import * as appSchema from '../schema/app.js';
 
-export interface AppDatabaseConfig {
+// Combine all schemas for PGLite (future bootstrap functionality)
+const schema = {
+  ...authSchema,
+  ...appSchema
+};
+
+export interface PGLiteDatabaseConfig {
   dataDir?: string;
   debug?: boolean;
 }
 
-export function createAppDatabase(config: AppDatabaseConfig = {}) {
+/**
+ * PGLite database client - for future bootstrap functionality
+ * This will be used to create a local browser database that syncs with Supabase
+ */
+export function createPGLiteDatabase(config: PGLiteDatabaseConfig = {}) {
   const pgClient = new PGlite(config.dataDir || 'idb://typyst', {
     debug: config.debug
   });
   
-  const db = drizzle(pgClient, { schema: appSchema });
+  const db = drizzle(pgClient, { schema });
   
   return {
     db,
     pgClient,
-    schema: appSchema
+    schema,
+    authSchema,
+    appSchema
   };
 }
 
-export type AppDatabase = ReturnType<typeof createAppDatabase>;
+export type PGLiteDatabase = ReturnType<typeof createPGLiteDatabase>;
 ```
 
 ### Package Configuration
@@ -236,16 +263,16 @@ export type AppDatabase = ReturnType<typeof createAppDatabase>;
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./auth": "./src/client/auth-db.ts",
-    "./app": "./src/client/app-db.ts",
+    "./supabase": "./src/client/supabase-db.ts",
+    "./pglite": "./src/client/pglite-db.ts",
     "./schema": "./src/schema/index.ts",
     "./schema/auth": "./src/schema/auth.ts",
     "./schema/app": "./src/schema/app.ts"
   },
   "typesVersions": {
     "*": {
-      "auth": ["./src/client/auth-db.ts"],
-      "app": ["./src/client/app-db.ts"],
+      "supabase": ["./src/client/supabase-db.ts"],
+      "pglite": ["./src/client/pglite-db.ts"],
       "schema": ["./src/schema/index.ts"],
       "schema/auth": ["./src/schema/auth.ts"],
       "schema/app": ["./src/schema/app.ts"]
@@ -263,7 +290,7 @@ export type AppDatabase = ReturnType<typeof createAppDatabase>;
   },
   "scripts": {
     "db:generate": "drizzle-kit generate:pg",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "drizzle-kit migrate", 
     "db:push": "drizzle-kit push:pg",
     "db:studio": "drizzle-kit studio"
   }
@@ -276,15 +303,15 @@ export type AppDatabase = ReturnType<typeof createAppDatabase>;
 
 1. **From `apps/app/src/lib/database/schema.ts`** → Split into:
    - `packages/db/src/schema/auth.ts` (Better Auth tables)
-   - `packages/db/src/schema/app.ts` (Application tables)
+   - `packages/db/src/schema/app.ts` (Application tables with proper FK references)
 
-2. **From `apps/app/src/lib/database/client.ts`** → Split into:
-   - `packages/db/src/client/auth-db.ts` (Supabase client)
-   - `packages/db/src/client/app-db.ts` (PGLite client)
+2. **From `apps/app/src/lib/database/client.ts`** → Refactor into:
+   - `packages/db/src/client/supabase-db.ts` (Primary Supabase client)
+   - `packages/db/src/client/pglite-db.ts` (Future PGLite client)
 
 3. **From `apps/app/src/lib/database/migrations/`** → Move to:
-   - `packages/db/migrations/app/` (PGLite migrations)
-   - `packages/db/migrations/auth/` (Supabase migrations)
+   - `packages/db/migrations/supabase/` (Primary migrations)
+   - `packages/db/migrations/pglite/` (Future bootstrap migrations)
 
 4. **From `apps/app/drizzle.config.ts`** → Move to:
    - `packages/db/drizzle.config.ts`
@@ -297,7 +324,7 @@ import type { Config } from 'drizzle-kit';
 
 export default {
   schema: './src/schema/*.ts',
-  out: './migrations',
+  out: './migrations/supabase',
   driver: 'pg',
   dbCredentials: {
     connectionString: process.env.DATABASE_URL!,
@@ -310,25 +337,25 @@ export default {
 1. **Create package structure:**
    ```bash
    mkdir -p packages/db/src/{schema,client,config}
-   mkdir -p packages/db/migrations/{auth,app}
+   mkdir -p packages/db/migrations/{supabase,pglite}
    ```
 
 2. **Set up package.json with proper dependencies and exports**
 
-3. **Move and split existing schema files:**
-   - Extract Better Auth tables to `auth.ts`
-   - Move application tables to `app.ts`
-   - Update all table definitions and relationships
+3. **Move and refactor existing schema files:**
+   - Keep Better Auth tables in `auth.ts`
+   - Move application tables to `app.ts` with proper FK references to user table
+   - Ensure all tables are in the same Supabase database
 
-4. **Create database client factories:**
-   - Implement `createAuthDatabase()` for Supabase
-   - Implement `createAppDatabase()` for PGLite
-   - Ensure proper typing and adapter integration
+4. **Create database client factory:**
+   - Implement `createSupabaseDatabase()` as primary client
+   - Include `createPGLiteDatabase()` for future bootstrap functionality
+   - Ensure proper typing and Better Auth adapter integration
 
 5. **Set up migrations structure:**
-   - Move existing migrations to appropriate directories
+   - Move existing migrations to `supabase/` directory
+   - Keep `pglite/` directory ready for future bootstrap migrations
    - Update migration scripts in package.json
-   - Test migration generation and application
 
 6. **Configure TypeScript exports:**
    - Set up sub-path exports in package.json
@@ -345,12 +372,12 @@ export default {
 1. **Schema Validation:**
    - Verify all table definitions are correct
    - Test that types are properly inferred
-   - Validate foreign key relationships
+   - Validate foreign key relationships work within Supabase
 
 2. **Client Factory Testing:**
-   - Test Supabase connection with auth client
-   - Test PGLite initialization with app client
-   - Verify adapter integration with Better Auth
+   - Test Supabase connection with unified client
+   - Verify Better Auth adapter integration
+   - Test all CRUD operations on auth and app tables
 
 3. **Migration Testing:**
    - Run migrations in test environments
@@ -364,30 +391,34 @@ export default {
 
 5. **Integration Testing:**
    - Test with existing auth implementation
-   - Verify PGLite operations still work
+   - Verify all app operations work with unified schema
    - Ensure no breaking changes
 
 ## Acceptance Criteria
 
 - [ ] Package structure is created with proper organization
-- [ ] Schema is split correctly between auth and app tables
-- [ ] Database client factories work for both Supabase and PGLite
-- [ ] Migrations are properly organized and functional
+- [ ] All schemas (auth + app) work together in Supabase
+- [ ] Database client factory works for Supabase with unified schema
+- [ ] PGLite configuration is ready for future bootstrap implementation
+- [ ] Migrations are organized for both current and future use
 - [ ] TypeScript sub-path exports work correctly
 - [ ] All existing functionality continues to work
+- [ ] Foreign key relationships work properly within Supabase
 - [ ] Package builds successfully
 - [ ] Tests pass for all functionality
-- [ ] Documentation is complete and accurate
+- [ ] Documentation reflects current Supabase-centered approach
 
 ## Dependencies
 
 - Drizzle ORM v0.26.1
-- PGLite v0.4.0
+- PGLite v0.4.0 (for future bootstrap functionality)
 - Better Auth v1.2.9 (for adapter integration)
 - PostgreSQL client (postgres package)
 
 ## Notes
 
-- **Foreign Key Constraints:** Since auth and app tables are in separate databases, foreign key constraints from app tables to user.id cannot be enforced. The userId fields in app tables will be text fields without FK constraints.
-- **Backward Compatibility:** Ensure all existing imports continue to work during transition
-- **Build Order:** This package must build before other packages that depend on it 
+- **Unified Database:** All tables (auth + app) are now in Supabase with proper foreign key constraints
+- **Future Bootstrap:** PGLite configuration is included but not actively used. Future implementation will include sync/bootstrap functionality
+- [ ] Backward Compatibility: Ensure all existing imports continue to work during transition
+- **Build Order:** This package must build before other packages that depend on it
+- **Migration Path:** Clear path for future PGLite bootstrap implementation without breaking changes 
