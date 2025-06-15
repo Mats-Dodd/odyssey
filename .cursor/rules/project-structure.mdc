@@ -7,6 +7,7 @@ alwaysApply: true
 
 **Typyst** is a local-first, privacy-focused markdown note-taking ecosystem built as a TypeScript monorepo using pnpm workspaces. The project delivers consistent experiences across desktop, web, and marketing platforms through shared components and configurations.
 
+We use supabase, drizzle, better auth and svelte in this project.  If you ever need to i have txt files for each with their documentation in docs-local.  
 ## 🏗️ Architecture Overview
 
 ```
