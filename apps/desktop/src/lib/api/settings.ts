@@ -1,6 +1,6 @@
 import { collection, appSettings, collectionSettings } from '@/store';
 import type { AppSettingsParams, CollectionSettingsParams } from '@/types';
-import { BaseDirectory, readTextFile, writeTextFile } from '@tauri-apps/api/fs';
+import { BaseDirectory, readTextFile, writeTextFile } from '@tauri-apps/plugin-fs';
 import { get } from 'svelte/store';
 
 export const loadSettings = async (loadApp: boolean, loadCollection: boolean) => {

@@ -2,7 +2,7 @@
 // https://github.com/hoppscotch/hoppscotch/blob/286fcd2bb08a84f027b10308d1e18da368f95ebf/packages/hoppscotch-selfhost-desktop/src-tauri/src/mac/window.rs
 
 use hex_color::HexColor;
-use tauri::{App, Manager, Runtime, Window};
+use tauri::{App, Emitter, Listener, Manager, Runtime, WebviewWindow};
 use objc::{msg_send, sel, sel_impl, class};
 
 // If anything breaks on macOS, this should be the place which is broken
@@ -41,7 +41,7 @@ unsafe impl Send for UnsafeWindowHandle {}
 unsafe impl Sync for UnsafeWindowHandle {}
 
 #[cfg(target_os = "macos")]
-fn update_window_theme(window: &tauri::Window, color: HexColor) {
+fn update_window_theme(window: &tauri::WebviewWindow, color: HexColor) {
     use cocoa::appkit::{
         NSAppearance, NSAppearanceNameVibrantDark, NSAppearanceNameVibrantLight, NSWindow,
     };
@@ -104,7 +104,7 @@ fn set_window_controls_pos(window: cocoa::base::id, x: f64, y: f64) {
     }
 }
 
-impl<R: Runtime> WindowExt for Window<R> {
+impl<R: Runtime> WindowExt for WebviewWindow<R> {
     #[cfg(target_os = "macos")]
     fn set_transparent_titlebar(&self) {
         unsafe {
@@ -120,7 +120,7 @@ impl<R: Runtime> WindowExt for Window<R> {
 #[cfg(target_os = "macos")]
 #[derive(Debug)]
 struct TypystAppState {
-    window: Window,
+    window: WebviewWindow,
 }
 
 #[cfg(target_os = "macos")]
@@ -140,7 +140,7 @@ pub fn setup_mac_window(app: &mut App) {
         func(ptr);
     }
 
-    let window = app.get_window("main").unwrap();
+    let window = app.get_webview_window("main").unwrap();
 
     unsafe {
         let ns_win = window.ns_window().unwrap() as id;
@@ -377,18 +377,19 @@ pub fn setup_mac_window(app: &mut App) {
         }))
     }
 
-    app.get_window("main").unwrap().set_transparent_titlebar();
+    app.get_webview_window("main").unwrap().set_transparent_titlebar();
 
-    let window_handle = app.get_window("main").unwrap();
+    let window_handle = app.get_webview_window("main").unwrap();
     update_window_theme(&window_handle, HexColor::WHITE);
 
     // Control window theme based on app update_window
-    app.listen_global("typyst-bg-changed", move |ev| {
-        let payload = serde_json::from_str::<&str>(ev.payload().unwrap())
+    app.listen("typyst-bg-changed", move |ev| {
+        let payload = ev.payload();
+        let payload_str = serde_json::from_str::<&str>(payload)
             .unwrap()
             .trim();
 
-        let color = HexColor::parse_rgb(payload).unwrap();
+        let color = HexColor::parse_rgb(payload_str).unwrap();
 
         update_window_theme(&window_handle, color);
     });

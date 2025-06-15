@@ -1,6 +1,6 @@
 import { fetchCollectionEntries } from '@/api/collection';
 import { collection } from '@/store';
-import type { FileEntry } from '@tauri-apps/api/fs';
+import type { FileEntry } from '@tauri-apps/plugin-fs';
 import { get } from 'svelte/store';
 
 export const getAllItems = async (

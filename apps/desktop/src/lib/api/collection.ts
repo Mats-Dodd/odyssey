@@ -1,9 +1,9 @@
 import { activeFile, collection, noteHistory } from '@/store';
 import { hideDotFiles, validateTypystFolder, sortFileEntry } from '@/utils';
-import { readDir } from '@tauri-apps/api/fs';
+import { readDir } from '@tauri-apps/plugin-fs';
 import { get } from 'svelte/store';
-import { open } from '@tauri-apps/api/dialog';
-import { writeTextFile, readTextFile, BaseDirectory } from '@tauri-apps/api/fs';
+import { open } from '@tauri-apps/plugin-dialog';
+import { writeTextFile, readTextFile, BaseDirectory } from '@tauri-apps/plugin-fs';
 import type { CollectionParams } from '@/types';
 
 // Fetch the collection entries
