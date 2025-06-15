@@ -1,7 +1,7 @@
 import { OS_TRASH_DIR } from '@/constants';
 import { collection, collectionSettings, platform } from '@/store';
 import { getNextUntitledName } from '@/utils';
-import { createDir, readDir, removeFile, renameFile } from '@tauri-apps/api/fs';
+import { mkdir, readDir, remove, rename } from '@tauri-apps/plugin-fs';
 import { homeDir } from '@tauri-apps/api/path';
 import { get } from 'svelte/store';
 
@@ -14,7 +14,7 @@ export const createFolder = async (dirPath: string) => {
 	const name = getNextUntitledName(files, 'Untitled');
 
 	// Save the new folder
-	await createDir(`${dirPath}/${name}`);
+	await mkdir(`${dirPath}/${name}`);
 
 	return `${dirPath}/${name}`;
 };
@@ -38,20 +38,20 @@ export const deleteFolder = async (path: string, recursive = false) => {
 
 	switch (get(collectionSettings).notes.trash_dir) {
 		case 'system':
-			await renameFile(path, `${await homeDir()}${OS_TRASH_DIR[get(platform)]}${folderName}`);
+			await rename(path, `${await homeDir()}${OS_TRASH_DIR[get(platform)]}${folderName}`);
 			break;
 		case 'typyst':
-			await renameFile(path, `${get(collection)}/.typyst/trash/${path.split('/').pop()!}`);
+			await rename(path, `${get(collection)}/.typyst/trash/${path.split('/').pop()!}`);
 			break;
 		case 'delete':
-			await removeFile(path);
+			await remove(path);
 			break;
 	}
 };
 
 // Rename a folder
 export const renameFolder = async (path: string, name: string) => {
-	await renameFile(path, `${path.split('/').slice(0, -1).join('/')}/${name}`);
+	await rename(path, `${path.split('/').slice(0, -1).join('/')}/${name}`);
 };
 
 // Move a folder
@@ -66,5 +66,5 @@ export const moveFolder = async (source: string, target: string) => {
 		throw new Error('Name conflict');
 	}
 
-	await renameFile(source, `${target}/${folderName}`);
+	await rename(source, `${target}/${folderName}`);
 };

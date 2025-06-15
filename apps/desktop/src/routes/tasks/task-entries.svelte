@@ -4,7 +4,7 @@
 	import * as Collapsible from '@typyst/ui/components/collapsible';
 	import Label from '@typyst/ui/components/label/label.svelte';
 	import { cn } from '@typyst/ui/lib/utils';
-	import { invoke } from '@tauri-apps/api/tauri';
+	import { invoke } from '@tauri-apps/api/core';
 	import { ChevronDown, Loader } from 'lucide-svelte';
 	import markdownit from 'markdown-it';
 	import { onDestroy, onMount } from 'svelte';

@@ -20,10 +20,10 @@
 	import Label from '@typyst/ui/components/label/label.svelte';
 	import { cn } from '@typyst/ui/lib/utils';
 	import type { UnlistenFn } from '@tauri-apps/api/event';
-	import type { FileEntry } from '@tauri-apps/api/fs';
-	import { invoke } from '@tauri-apps/api/tauri';
+	import type { FileEntry } from '@tauri-apps/plugin-fs';
+	import { invoke } from '@tauri-apps/api/core';
 	import { ALargeSmall, WholeWord } from 'lucide-svelte';
-	import { watchImmediate } from 'tauri-plugin-fs-watch-api';
+	import { watchImmediate } from '@tauri-apps/plugin-fs';
 	import Entries from './entries.svelte';
 	import SearchResults from './search-results.svelte';
 

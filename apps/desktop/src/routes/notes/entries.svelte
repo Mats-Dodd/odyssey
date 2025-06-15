@@ -10,7 +10,7 @@
 	import * as Collapsible from '@typyst/ui/components/collapsible';
 	import * as ContextMenu from '@typyst/ui/components/context-menu';
 	import { cn } from '@typyst/ui/lib/utils';
-	import type { FileEntry } from '@tauri-apps/api/fs';
+	import type { FileEntry } from '@tauri-apps/plugin-fs';
 	import { get } from 'svelte/store';
 
 	export let entries: FileEntry[];

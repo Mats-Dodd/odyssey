@@ -6,7 +6,7 @@
 	import { activeFile, appTheme, collection } from '@/store';
 	import { formatTimeAgo, shortcutToString } from '@/utils';
 	import * as Command from '@typyst/ui/components/command';
-	import { open as browserOpen } from '@tauri-apps/api/shell';
+	import { open as browserOpen } from '@tauri-apps/plugin-shell';
 	import { Twitter } from 'lucide-svelte';
 	import { onMount } from 'svelte';
 	import { mainCommands as commands, createNoteCommands } from './commands';
