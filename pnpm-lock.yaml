@@ -68,6 +68,9 @@ importers:
       '@typyst/ui':
         specifier: workspace:^
         version: link:../../packages/ui
+      better-auth:
+        specifier: ^1.0.0
+        version: 1.2.9
       bits-ui:
         specifier: ^0.15.1
         version: 0.15.1(svelte@4.2.20)
@@ -76,7 +79,7 @@ importers:
         version: 2.1.1
       drizzle-orm:
         specifier: ^0.33.0
-        version: 0.33.0(@electric-sql/pglite@0.2.17)
+        version: 0.33.0(@electric-sql/pglite@0.2.17)(postgres@3.4.7)
       lucide-svelte:
         specifier: ^0.321.0
         version: 0.321.0(svelte@4.2.20)
@@ -86,6 +89,9 @@ importers:
       mode-watcher:
         specifier: ^0.4.1
         version: 0.4.1(svelte@4.2.20)
+      postgres:
+        specifier: ^3.4.7
+        version: 3.4.7
       tailwind-merge:
         specifier: ^2.2.1
         version: 2.6.0
@@ -3283,7 +3289,7 @@ packages:
       - supports-color
     dev: true
 
-  /drizzle-orm@0.33.0(@electric-sql/pglite@0.2.17):
+  /drizzle-orm@0.33.0(@electric-sql/pglite@0.2.17)(postgres@3.4.7):
     resolution: {integrity: sha512-SHy72R2Rdkz0LEq0PSG/IdvnT3nGiWuRk+2tXZQ90GVq/XQhpCzu/EFT3V2rox+w8MlkBQxifF8pCStNYnERfA==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
@@ -3373,6 +3379,7 @@ packages:
         optional: true
     dependencies:
       '@electric-sql/pglite': 0.2.17
+      postgres: 3.4.7
     dev: false
 
   /eastasianwidth@0.2.0:
@@ -4770,6 +4777,11 @@ packages:
       nanoid: 3.3.11
       picocolors: 1.1.1
       source-map-js: 1.2.1
+
+  /postgres@3.4.7:
+    resolution: {integrity: sha512-Jtc2612XINuBjIl/QTWsV5UvE8UHuNblcO3vVADSrKsrc6RqGX6lOW1cEo3CM2v0XG4Nat8nI+YM7/f26VxXLw==}
+    engines: {node: '>=12'}
+    dev: false
 
   /prelude-ls@1.2.1:
     resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}

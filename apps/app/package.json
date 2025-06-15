@@ -9,7 +9,12 @@
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
 		"lint": "prettier --check . && eslint .",
-		"format": "prettier --write ."
+		"format": "prettier --write .",
+		"db:generate": "drizzle-kit generate",
+		"db:migrate": "drizzle-kit migrate",
+		"db:push": "drizzle-kit push",
+		"db:studio": "drizzle-kit studio",
+		"auth:generate": "npx @better-auth/cli generate"
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
@@ -55,12 +60,14 @@
 		"@tiptap/pm": "^2.2.1",
 		"@tiptap/starter-kit": "^2.2.1",
 		"@typyst/ui": "workspace:^",
+		"better-auth": "^1.0.0",
 		"bits-ui": "^0.15.1",
 		"clsx": "^2.1.0",
 		"drizzle-orm": "^0.33.0",
 		"lucide-svelte": "^0.321.0",
 		"markdown-it": "^14.1.0",
 		"mode-watcher": "^0.4.1",
+		"postgres": "^3.4.7",
 		"tailwind-merge": "^2.2.1",
 		"tailwind-variants": "^0.1.20",
 		"tiptap-markdown": "^0.8.9"

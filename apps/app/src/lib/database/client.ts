@@ -6,6 +6,15 @@ import { live } from '@electric-sql/pglite/live';
 import { drizzle } from 'drizzle-orm/pglite';
 import * as schema from './schema';
 
+// Application schema - excludes Better Auth tables
+const appSchema = {
+	collection: schema.collection,
+	collectionSettings: schema.collectionSettings,
+	entry: schema.entry
+	// Explicitly exclude Better Auth tables from application schema
+	// user, session, account, verification are managed by Better Auth
+};
+
 let pgClientPromise: Promise<PGlite>;
 let dbInstance: ReturnType<typeof drizzle> | null = null;
 
@@ -25,7 +34,8 @@ function initializeDB() {
 		});
 
 		pgClientPromise.then((pgClient) => {
-			dbInstance = drizzle(pgClient, { schema });
+			// Use filtered schema for application database
+			dbInstance = drizzle(pgClient, { schema: appSchema });
 		});
 	}
 }
@@ -68,3 +78,8 @@ export const db = new Proxy({} as ReturnType<typeof drizzle>, {
 		return dbInstance[prop as keyof typeof dbInstance];
 	}
 });
+
+// Export application schema types
+export type Collection = typeof appSchema.collection.$inferSelect;
+export type CollectionSettings = typeof appSchema.collectionSettings.$inferSelect;
+export type Entry = typeof appSchema.entry.$inferSelect;
