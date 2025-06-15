@@ -1,41 +1,36 @@
 # Local-First Sync Architecture Plan for Typyst
-## Simplified Single-User Cross-Platform Sync
+## Simplified Real-Time Cross-Platform Sync
 
 ## Executive Summary
 
-This document outlines a streamlined plan to transform Typyst into a local-first text editor using Loro CRDTs for conflict-free data synchronization between web and desktop platforms. The architecture enables seamless synchronization between the web app (using PGLite) and desktop app (using filesystem storage), with automatic merge conflict resolution when documents are edited offline on different platforms.
+This document outlines a streamlined plan to add real-time cross-platform sync to Typyst using Loro CRDTs for conflict-free data synchronization between web and desktop platforms. The architecture enables seamless synchronization of entire collections with automatic merge conflict resolution when documents are edited simultaneously across platforms.
 
 **Key Technologies:**
-- **Loro CRDT v1.5.0+**: Conflict-free replicated data types for automatic merge resolution and state management
-- **Electric SQL v1.0.18+**: PostgreSQL sync engine for data transport and cross-platform synchronization
-- **Supabase**: Managed PostgreSQL hosting with logical replication enabled
+- **Loro CRDT v1.5.0+**: Conflict-free replicated data types with tree structures for collections
+- **Supabase**: Managed PostgreSQL with REST API and real-time subscriptions
 - **Better Auth**: Modern authentication system for user management
 - **TipTap + loro-prosemirror**: Rich text editing with CRDT integration
-- **PGLite**: Browser-based PostgreSQL for web app
-- **Tauri**: Cross-platform desktop application framework
-- **SvelteKit**: Unified UI framework across all platforms
+- **Unified Data Model**: Collections as Loro trees, documents as Loro text
+- **Hybrid Storage**: Desktop filesystem + database sync, Web PGLite + API sync
 
-**Architecture Clarifications:**
-- **Electric SQL** handles the transport layer and data synchronization between clients and PostgreSQL
-- **Loro CRDT** manages document state, conflict resolution, and merge operations
-- **Supabase** provides the central PostgreSQL instance with logical replication
-- **Better Auth** handles user authentication and session management
-- This is a **greenfield implementation** - no existing data migration required
+**Architecture Approach:**
+- **Supabase REST API** for data transport and user authentication
+- **Loro CRDT** manages collection trees and document state with automatic conflict resolution
+- **Better Auth** handles email/password authentication and session management
+- **Real-time sync** via API polling and Loro state merging
+- **Unified data model** across platforms with filesystem persistence on desktop
 
 ## Table of Contents
 
 1. [Current State Analysis](#current-state-analysis)
-2. [Architecture Overview](#architecture-overview)
-3. [Data Model Design](#data-model-design)
-4. [Sync Engine Architecture](#sync-engine-architecture)
+2. [Unified Data Model](#unified-data-model)
+3. [Authentication Architecture](#authentication-architecture)
+4. [Sync Architecture](#sync-architecture)
 5. [CRDT Integration Strategy](#crdt-integration-strategy)
-6. [Version Control System](#version-control-system)
-7. [Storage Architecture](#storage-architecture)
-8. [Performance & Optimization](#performance--optimization)
-9. [Implementation Phases](#implementation-phases)
-10. [Testing Strategy](#testing-strategy)
-11. [Migration Strategy](#migration-strategy)
-12. [Future Enhancements](#future-enhancements)
+6. [Storage Strategy](#storage-strategy)
+7. [API Design](#api-design)
+8. [Implementation Phases](#implementation-phases)
+9. [Testing Strategy](#testing-strategy)
 
 ## Current State Analysis
 
@@ -44,1457 +39,686 @@ This document outlines a streamlined plan to transform Typyst into a local-first
 - **ORM**: Drizzle
 - **Editor**: TipTap (ProseMirror-based)
 - **Storage**: IndexedDB via PGLite
-- **Data Model**:
-  - Collections (directories)
-  - Entries (files/folders)
-  - Collection settings
+- **Data Model**: Collections and entries in separate tables
 
 ### Desktop App Architecture
-- **Storage**: Local filesystem
+- **Storage**: Local filesystem with JSON metadata
 - **Editor**: TipTap
 - **Platform**: Tauri
-- **Data Storage**: JSON files in AppData for metadata
-- **File Operations**: Direct filesystem access
+- **Data Storage**: Direct file operations with AppData metadata
+- **File Operations**: Native filesystem access
 
-### Key Differences
-1. Web app uses database-driven storage
-2. Desktop app uses filesystem storage
-3. No current synchronization mechanism
-4. Different data persistence strategies
+### Sync Requirements
+1. **Real-time sync** of entire collections across platforms
+2. **Unified data model** using Loro CRDT trees
+3. **Hybrid document IDs** combining filesystem paths and UUIDs
+4. **Desktop filesystem persistence** maintained alongside sync
+5. **Automatic conflict resolution** via Loro CRDT
 
-## Architecture Overview
+## Unified Data Model
 
-### High-Level Architecture
-
-```
-┌─────────────────┐         ┌─────────────────┐
-│   Desktop App   │         │    Web App      │
-│  (Filesystem)   │         │   (PGLite)      │
-│   + Loro CRDT   │         │  + Loro CRDT    │
-└────────┬────────┘         └────────┬────────┘
-         │                           │
-         │    ┌─────────────────┐    │
-         └────┤ Electric SQL    ├────┘
-              │ (Transport)     │
-              └────────┬────────┘
-                       │
-              ┌────────┴────────┐
-              │   Supabase      │
-              │  (PostgreSQL)   │
-              │ + Better Auth   │
-              └─────────────────┘
-```
-
-### Core Components
-
-1. **Loro CRDT Layer**: Manages document state and handles conflict-free merging when documents are edited offline on different platforms
-2. **Electric SQL**: Handles transport layer and data synchronization between PostgreSQL and clients when online
-3. **Supabase**: Provides managed PostgreSQL with logical replication and Better Auth integration
-4. **Storage Adapters**: Bridge between different storage backends (filesystem vs PGLite) and Loro CRDT
-5. **Sync Service**: Coordinates between Electric SQL transport and Loro CRDT state management
-
-## Data Model Design
-
-### Unified Data Schema
+### Core CRDT Structure
 
 ```typescript
-// Core entities with CRDT support
-interface Collection {
-  id: string;           // UUID
-  name: string;
-  createdAt: Date;
-  updatedAt: Date;
-  settings: LoroMap;    // CRDT map for settings
-}
-
-interface Document {
-  id: string;           // UUID
-  collectionId: string;
-  path: string;         // Relative path within collection
-  name: string;
-  content: LoroText;    // CRDT text for content
-  metadata: LoroMap;    // CRDT map for metadata
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-interface DocumentVersion {
-  documentId: string;
-  version: VersionVector;
-  frontiers: Frontiers;
-  timestamp: Date;
-  message?: string;
-}
-```
-
-### PostgreSQL Schema (Supabase)
-
-```sql
--- Better Auth tables (automatically created by Better Auth)
--- Users, sessions, accounts, etc. are handled by Better Auth
-
--- Collections table
-CREATE TABLE collections (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL, -- Better Auth user ID
-  name TEXT NOT NULL,
-  settings_loro BYTEA,        -- Loro encoded settings
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-);
-
--- Documents table
-CREATE TABLE documents (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  collection_id UUID REFERENCES collections(id) ON DELETE CASCADE,
-  user_id TEXT NOT NULL, -- Better Auth user ID for access control
-  path TEXT NOT NULL,
-  name TEXT NOT NULL,
-  content_loro BYTEA,         -- Loro encoded content
-  metadata_loro BYTEA,        -- Loro encoded metadata
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW(),
-  UNIQUE(collection_id, path),
-  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-);
-
--- Version history table
-CREATE TABLE document_versions (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  document_id UUID REFERENCES documents(id) ON DELETE CASCADE,
-  user_id TEXT NOT NULL, -- Better Auth user ID
-  version_vector JSONB NOT NULL,
-  frontiers JSONB NOT NULL,
-  shallow_snapshot BYTEA,     -- Loro shallow snapshot
-  timestamp TIMESTAMPTZ DEFAULT NOW(),
-  message TEXT,
-  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-);
-
--- Sync metadata for Electric SQL
-CREATE TABLE sync_metadata (
-  peer_id TEXT PRIMARY KEY,
-  user_id TEXT NOT NULL, -- Better Auth user ID
-  last_sync TIMESTAMPTZ,
-  version_vector JSONB,
-  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
-);
-
--- Enable Row Level Security
-ALTER TABLE collections ENABLE ROW LEVEL SECURITY;
-ALTER TABLE documents ENABLE ROW LEVEL SECURITY;
-ALTER TABLE document_versions ENABLE ROW LEVEL SECURITY;
-ALTER TABLE sync_metadata ENABLE ROW LEVEL SECURITY;
-
--- RLS Policies (users can only access their own data)
-CREATE POLICY "Users can access own collections" ON collections
-  FOR ALL USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can access own documents" ON documents
-  FOR ALL USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can access own document versions" ON document_versions
-  FOR ALL USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can access own sync metadata" ON sync_metadata
-  FOR ALL USING (auth.uid() = user_id);
-```
-
-## Sync Engine Architecture
-
-### Electric SQL Configuration
-
-```typescript
-// Electric sync configuration with Better Auth integration
-const electricConfig = {
-  // Development setup using Docker Compose
-  development: {
-    databaseUrl: 'postgresql://postgres:password@localhost:54321/electric',
-    electricUrl: 'http://localhost:3000',
-    insecure: true // Only for development
-  },
-  
-  // Production setup with Supabase
-  production: {
-    databaseUrl: process.env.SUPABASE_DATABASE_URL,
-    electricUrl: process.env.ELECTRIC_URL,
-    secret: process.env.ELECTRIC_SECRET
-  }
-};
-
-// Shape definitions for authenticated user sync
-const createUserShapes = (userId: string) => ({
-  // Sync all collections for the authenticated user
-  collections: {
-    url: `${electricConfig.electricUrl}/v1/shape`,
-    params: {
-      table: 'collections',
-      where: `user_id = '${userId}'`
-    }
-  },
-  
-  // Sync documents with CRDT content for user's collections
-  documents: {
-    url: `${electricConfig.electricUrl}/v1/shape`,
-    params: {
-      table: 'documents',
-      where: `user_id = '${userId}'`,
-      columns: 'id,collection_id,path,name,content_loro,metadata_loro,created_at,updated_at'
-    }
-  },
-  
-  // Sync document versions for history (limited to recent versions)
-  versions: {
-    url: `${electricConfig.electricUrl}/v1/shape`,
-    params: {
-      table: 'document_versions',
-      where: `user_id = '${userId}'`,
-      // Only sync recent versions to avoid excessive data
-      orderBy: 'timestamp DESC'
-    }
-  }
-});
-```
-
-### Sync Flow with Authentication
-
-1. **Authenticated Initial Sync**:
-   ```typescript
-   import { authClient } from './auth-client';
-   import { Shape } from '@electric-sql/client';
-   
-   // Get authenticated user session
-   const session = await authClient.getSession();
-   if (!session.data?.user) {
-     throw new Error('User not authenticated');
-   }
-   
-   const userId = session.data.user.id;
-   const shapes = createUserShapes(userId);
-   
-   // Subscribe to user's collections
-   const collectionsShape = new Shape(shapes.collections);
-   collectionsShape.subscribe(({ rows }) => {
-     // Update local collections state
-     updateLocalCollections(rows);
-   });
-   ```
-
-2. **Document Sync with Debounced Updates**:
-   ```typescript
-   // Initialize Loro document with Electric sync
-   class SyncedDocument {
-     private loroDoc: LoroDoc;
-     private documentShape: Shape;
-     private updateQueue: Uint8Array[] = [];
-     private debounceTimer: NodeJS.Timeout | null = null;
-     
-     constructor(documentId: string, userId: string) {
-       this.loroDoc = new LoroDoc();
-       this.loroDoc.setPeerId(generatePeerId());
-       
-       // Set up Electric shape for this document
-       this.documentShape = new Shape({
-         url: `${electricConfig.electricUrl}/v1/shape`,
-         params: {
-           table: 'documents',
-           where: `id = '${documentId}' AND user_id = '${userId}'`
-         }
-       });
-       
-       this.setupSync();
-     }
-     
-     private setupSync() {
-       // Handle incoming updates from Electric
-       this.documentShape.subscribe(({ rows }) => {
-         const doc = rows[0];
-         if (doc?.content_loro) {
-           this.loroDoc.import(doc.content_loro);
-         }
-       });
-       
-       // Handle local updates with debouncing
-       this.loroDoc.subscribeLocalUpdates((update: Uint8Array) => {
-         this.queueUpdate(update);
-       });
-     }
-     
-     private queueUpdate(update: Uint8Array) {
-       this.updateQueue.push(update);
-       
-       // Debounce updates (500ms delay)
-       if (this.debounceTimer) {
-         clearTimeout(this.debounceTimer);
-       }
-       
-       this.debounceTimer = setTimeout(() => {
-         this.flushUpdates();
-       }, 500);
-     }
-     
-     private async flushUpdates() {
-       if (this.updateQueue.length === 0) return;
-       
-       try {
-         // Export current state and send to Electric
-         const currentState = this.loroDoc.export({ mode: 'update' });
-         await this.syncToElectric(currentState);
-         this.updateQueue = [];
-       } catch (error) {
-         console.error('Sync failed:', error);
-         // Implement retry logic here
-       }
-     }
-   }
-   ```
-
-3. **Graceful Error Handling**:
-   ```typescript
-   class SyncService {
-     private retryAttempts = 3;
-     private retryDelay = 1000; // Start with 1 second
-     
-     async syncToElectric(data: Uint8Array, attempt = 1): Promise<void> {
-       try {
-         // Update document in PostgreSQL via Electric
-         await fetch(`${electricConfig.electricUrl}/api/documents`, {
-           method: 'PUT',
-           headers: {
-             'Content-Type': 'application/octet-stream',
-             'Authorization': `Bearer ${await this.getAuthToken()}`
-           },
-           body: data
-         });
-       } catch (error) {
-         if (attempt < this.retryAttempts) {
-           // Exponential backoff
-           const delay = this.retryDelay * Math.pow(2, attempt - 1);
-           setTimeout(() => {
-             this.syncToElectric(data, attempt + 1);
-           }, delay);
-         } else {
-           // Store for later sync when connection is restored
-           this.storeForLaterSync(data);
-           throw new Error(`Sync failed after ${this.retryAttempts} attempts`);
-         }
-       }
-     }
-     
-     private async storeForLaterSync(data: Uint8Array) {
-       // Store in IndexedDB or local storage for later sync
-       const pendingSync = {
-         data,
-         timestamp: Date.now(),
-         attempts: 0
-       };
-       
-       await this.storageAdapter.storePendingSync(pendingSync);
-     }
-   }
-   ```
-
-## CRDT Integration Strategy
-
-### Loro CRDT Architecture
-
-Loro v1.5.0+ provides CRDT capabilities focused on single-user cross-platform sync:
-- **Rich Text CRDT**: Handles merge conflicts when documents are edited offline on different platforms
-- **Deep Reactivity**: Automatic UI updates on state changes
-- **Shallow Snapshots**: Efficient storage for large documents
-- **Version Control**: Built-in document history and snapshots
-- **Conflict Resolution**: Automatic merging of concurrent edits from different platforms
-
-### Core CRDT Data Structures
-
-```typescript
-// Document structure using Loro containers
-interface TypystDocument {
-  // Main content as rich text CRDT
-  content: LoroText;
-  
-  // Metadata as reactive map
+// Collection as Loro Tree with documents as children
+interface TypystCollection {
+  // Collection metadata
   metadata: LoroMap<{
-    title: string;
+    id: string;           // UUID for sync
+    name: string;         // Display name
+    path: string;         // Filesystem path (desktop) or virtual path (web)
+    createdAt: number;
+    updatedAt: number;
+    settings: CollectionSettings;
+  }>;
+  
+  // Document tree structure
+  documents: LoroTree<DocumentNode>;
+}
+
+interface DocumentNode {
+  // Hybrid ID system
+  id: string;             // UUID for sync
+  path: string;           // Relative path within collection
+  name: string;           // Filename
+  isFolder: boolean;      // Directory flag
+  
+  // Document content (only for files)
+  content?: LoroText;     // Rich text content
+  metadata?: LoroMap<{
     wordCount: number;
     lastModified: number;
     tags: string[];
-    author: string;
-    language: string;
   }>;
-  
-  // Document settings
-  settings: LoroMap<{
-    theme: string;
-    fontSize: number;
-    lineHeight: number;
-    spellCheck: boolean;
+}
+
+// Root sync document containing all user collections
+interface UserSyncDocument {
+  collections: LoroMap<TypystCollection>;
+  metadata: LoroMap<{
+    userId: string;
+    lastSync: number;
+    deviceId: string;
   }>;
-  
-  // Hierarchical structure for nested documents
-  structure: LoroTree<DocumentNode>;
 }
 ```
 
-### Text Editor Integration
+### Database Schema (Supabase)
+
+```sql
+-- Better Auth tables (auto-created)
+-- users, sessions, accounts handled by Better Auth
+
+-- User sync documents (one per user)
+CREATE TABLE user_sync_documents (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL UNIQUE, -- Better Auth user ID
+  loro_data BYTEA NOT NULL,      -- Serialized Loro document
+  version_vector JSONB NOT NULL, -- For conflict detection
+  updated_at TIMESTAMPTZ DEFAULT NOW(),
+  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+);
+
+-- Sync history for debugging and recovery
+CREATE TABLE sync_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  device_id TEXT NOT NULL,
+  loro_update BYTEA NOT NULL,    -- Loro update data
+  timestamp TIMESTAMPTZ DEFAULT NOW(),
+  FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+);
+
+-- Simple indexes for performance
+CREATE INDEX idx_user_sync_documents_user_id ON user_sync_documents(user_id);
+CREATE INDEX idx_sync_history_user_id ON sync_history(user_id);
+CREATE INDEX idx_sync_history_timestamp ON sync_history(timestamp);
+```
+
+## Authentication Architecture
+
+### Better Auth Setup
 
 ```typescript
-// TipTap + Loro integration with Electric SQL sync (no custom extensions)
-import { LoroDoc } from 'loro-crdt';
-import { createBinding } from 'loro-prosemirror';
-import { Editor } from '@tiptap/core';
-import { StarterKit } from '@tiptap/starter-kit';
+// Server-side auth configuration
+import { betterAuth } from "better-auth";
+import { drizzle } from "drizzle-orm/postgres-js";
 
-class TypystEditor {
+export const auth = betterAuth({
+  database: drizzle(process.env.SUPABASE_DATABASE_URL!),
+  emailAndPassword: {
+    enabled: true,
+    autoSignIn: true,
+    requireEmailVerification: false // Simplify for MVP
+  },
+  session: {
+    expiresIn: 60 * 60 * 24 * 7, // 7 days
+    updateAge: 60 * 60 * 24       // Update daily
+  },
+  // Additional configuration as needed
+});
+
+// Client-side auth
+import { createAuthClient } from "better-auth/client";
+
+export const authClient = createAuthClient({
+  baseURL: process.env.SUPABASE_FUNCTIONS_URL || "http://localhost:3000"
+});
+
+// Unified auth state management
+class AuthManager {
+  private session: Session | null = null;
+  
+  async signIn(email: string, password: string): Promise<void> {
+    const result = await authClient.signIn.email({ email, password });
+    if (result.data) {
+      this.session = result.data;
+      await this.initializeUserSync();
+    }
+  }
+  
+  async signUp(email: string, password: string): Promise<void> {
+    const result = await authClient.signUp.email({ email, password });
+    if (result.data) {
+      this.session = result.data;
+      await this.createUserSyncDocument();
+    }
+  }
+  
+  private async initializeUserSync(): Promise<void> {
+    // Initialize sync for existing user
+    await SyncManager.getInstance().initialize(this.session!.user.id);
+  }
+  
+  private async createUserSyncDocument(): Promise<void> {
+    // Create initial sync document for new user
+    await SyncManager.getInstance().createUserDocument(this.session!.user.id);
+  }
+}
+```
+
+## Sync Architecture
+
+### Real-Time Sync Manager
+
+```typescript
+class SyncManager {
   private loroDoc: LoroDoc;
-  private editor: Editor;
-  private binding: any;
-  private syncService: SyncService;
-  private documentId: string;
   private userId: string;
+  private deviceId: string;
+  private syncInterval: NodeJS.Timeout | null = null;
+  private pendingUpdates: Uint8Array[] = [];
   
-  constructor(documentId: string, userId: string, initialContent?: Uint8Array) {
-    this.documentId = documentId;
+  constructor(userId: string) {
     this.userId = userId;
+    this.deviceId = this.generateDeviceId();
     this.loroDoc = new LoroDoc();
-    this.loroDoc.setPeerId(this.generatePeerId());
-    this.syncService = new SyncService(userId);
+    this.loroDoc.setPeerId(this.deviceId);
     
-    if (initialContent) {
-      this.loroDoc.import(initialContent);
+    this.setupLocalUpdateHandling();
+  }
+  
+  // Initialize sync for user
+  async initialize(): Promise<void> {
+    // Load user's sync document from Supabase
+    const syncDoc = await this.fetchUserSyncDocument();
+    if (syncDoc) {
+      this.loroDoc.import(syncDoc.loro_data);
     }
     
-    this.setupEditor();
-    this.setupSync();
+    // Start real-time sync
+    this.startRealTimeSync();
   }
   
-  private setupEditor() {
-    const text = this.loroDoc.getText('content');
-    
-    // Using standard TipTap extensions (no custom extensions for now)
-    this.editor = new Editor({
-      extensions: [
-        StarterKit,
-        // loro-prosemirror handles the collaboration
-      ],
-    });
-    
-    // Create binding between Loro and ProseMirror
-    this.binding = createBinding(text, this.editor);
+  // Real-time sync via polling (can upgrade to WebSockets later)
+  private startRealTimeSync(): void {
+    this.syncInterval = setInterval(async () => {
+      await this.performSync();
+    }, 2000); // 2-second polling for real-time feel
   }
   
-  private setupSync() {
-    // Subscribe to local updates with debouncing (handled by SyncService)
-    this.loroDoc.subscribeLocalUpdates((update: Uint8Array) => {
-      this.syncService.queueUpdate(this.documentId, update);
-    });
-    
-    // Handle incoming updates from Electric SQL
-    this.syncService.onRemoteUpdate(this.documentId, (update: Uint8Array) => {
-      // Loro handles merge conflicts automatically
-      this.loroDoc.import(update);
-    });
-  }
-  
-  private generatePeerId(): string {
-    // Generate unique peer ID for this device/session
-    const deviceId = localStorage.getItem('typyst-device-id') || 
-                    crypto.randomUUID();
-    localStorage.setItem('typyst-device-id', deviceId);
-    
-    return `${this.userId}-${deviceId}-${Date.now()}`;
-  }
-  
-  // Version control methods using Loro's built-in capabilities
-  async createSnapshot(message?: string) {
-    if (message) {
-      this.loroDoc.setNextCommitMessage(message);
-    }
-    this.loroDoc.commit();
-    
-    const version = {
-      frontiers: this.loroDoc.frontiers(),
-      timestamp: Date.now(),
-      message: message || 'Auto-save',
-    };
-    
-    // Store shallow snapshot for efficiency
-    const snapshot = this.loroDoc.export({
-      mode: 'shallow-snapshot',
-      frontiers: this.loroDoc.frontiers(),
-    });
-    
-    await this.syncService.saveVersion(this.documentId, version, snapshot);
-  }
-  
-  async timeTravel(frontiers: Frontiers) {
-    const forkedDoc = this.loroDoc.forkAt(frontiers);
-    // Create new editor instance with historical state
-    return new TypystEditor(
-      this.documentId, 
-      this.userId, 
-      forkedDoc.export()
-    );
-  }
-  
-  // Graceful cleanup
-  destroy() {
-    this.binding?.destroy();
-    this.editor?.destroy();
-    this.syncService?.cleanup();
-  }
-}
-```
-
-### Advanced CRDT Features
-
-```typescript
-// Hierarchical document structure using LoroTree
-class DocumentStructure {
-  private tree: LoroTree;
-  
-  constructor(loroDoc: LoroDoc) {
-    this.tree = loroDoc.getTree('structure');
-    this.tree.enableFractionalIndex(0.1); // Enable automatic ordering
-  }
-  
-  // Create nested document sections
-  createSection(parentId?: string, title: string = 'Untitled') {
-    const sectionId = this.tree.create(parentId);
-    const sectionData = this.tree.getMap(sectionId);
-    
-    sectionData.set('type', 'section');
-    sectionData.set('title', title);
-    sectionData.set('content', this.tree.createText());
-    sectionData.set('collapsed', false);
-    sectionData.set('createdAt', Date.now());
-    
-    return sectionId;
-  }
-  
-  // Move sections with automatic conflict resolution
-  moveSection(sectionId: string, newParentId?: string, index?: number) {
-    this.tree.move(sectionId, newParentId, index);
-  }
-  
-  // Get hierarchical structure
-  getStructure() {
-    return this.tree.toJSON();
-  }
-}
-
-// Metadata management with reactive updates
-class DocumentMetadata {
-  private metadata: LoroMap;
-  private subscribers: Set<(metadata: any) => void> = new Set();
-  
-  constructor(loroDoc: LoroDoc) {
-    this.metadata = loroDoc.getMap('metadata');
-    
-    // Subscribe to metadata changes
-    this.metadata.subscribe((event) => {
-      const currentMetadata = this.metadata.toJSON();
-      this.subscribers.forEach(callback => callback(currentMetadata));
-    });
-  }
-  
-  // Auto-update word count
-  updateWordCount(content: string) {
-    const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
-    this.metadata.set('wordCount', wordCount);
-    this.metadata.set('lastModified', Date.now());
-  }
-  
-  // Tag management
-  addTag(tag: string) {
-    const tags = this.metadata.get('tags') || [];
-    if (!tags.includes(tag)) {
-      tags.push(tag);
-      this.metadata.set('tags', tags);
-    }
-  }
-  
-  removeTag(tag: string) {
-    const tags = this.metadata.get('tags') || [];
-    const filtered = tags.filter(t => t !== tag);
-    this.metadata.set('tags', filtered);
-  }
-  
-  // Subscribe to metadata changes
-  subscribe(callback: (metadata: any) => void) {
-    this.subscribers.add(callback);
-    return () => this.subscribers.delete(callback);
-  }
-}
-```
-
-### Conflict Resolution Strategy
-
-Loro's automatic conflict resolution handles:
-
-1. **Text Conflicts**: 
-   - Concurrent insertions are merged using position-based CRDTs
-   - Deletions are handled with tombstone markers
-   - Formatting conflicts preserve both styles when possible
-
-2. **Structural Conflicts**:
-   - Tree operations use fractional indexing for ordering
-   - Move operations are resolved using timestamp ordering
-   - Parent-child relationships maintain consistency
-
-3. **Metadata Conflicts**:
-   - Last-write-wins for simple values
-   - List operations use CRDT semantics
-   - Map operations merge non-conflicting keys
-
-```typescript
-// Custom conflict resolution for specific cases
-class ConflictResolver {
-  static resolveMetadataConflict(local: any, remote: any, key: string) {
-    switch (key) {
-      case 'tags':
-        // Merge unique tags from both versions
-        return [...new Set([...local, ...remote])];
-      
-      case 'lastModified':
-        // Use the latest timestamp
-        return Math.max(local, remote);
-      
-      case 'title':
-        // Show conflict UI for manual resolution
-        return { conflict: true, local, remote };
-      
-      default:
-        // Default to last-write-wins
-        return remote;
-    }
-  }
-}
-
-
-
-### Storage Adapter Pattern
-
-```typescript
-// Abstract storage interface
-interface StorageAdapter {
-  loadDocument(id: string): Promise<Uint8Array | null>;
-  saveDocument(id: string, data: Uint8Array): Promise<void>;
-  watchDocument(id: string, callback: (data: Uint8Array) => void): () => void;
-  saveVersion(documentId: string, version: Version, snapshot: Uint8Array): Promise<void>;
-  loadVersion(documentId: string, versionId: string): Promise<{ version: Version; snapshot: Uint8Array }>;
-}
-
-// Web implementation (PGLite)
-class PGLiteAdapter implements StorageAdapter {
-  private db: PGliteDatabase;
-  
-  constructor(db: PGliteDatabase) {
-    this.db = db;
-  }
-  
-  async loadDocument(id: string): Promise<Uint8Array | null> {
-    const result = await this.db.select()
-      .from(documents)
-      .where(eq(documents.id, id));
-    return result[0]?.content_loro || null;
-  }
-  
-  async saveDocument(id: string, data: Uint8Array): Promise<void> {
-    await this.db.update(documents)
-      .set({ 
-        content_loro: data,
-        updated_at: new Date()
-      })
-      .where(eq(documents.id, id));
-  }
-  
-  watchDocument(id: string, callback: (data: Uint8Array) => void): () => void {
-    // Use PGLite's live query capabilities
-    const subscription = this.db.live.query(
-      `SELECT content_loro FROM documents WHERE id = $1`,
-      [id],
-      (result) => {
-        if (result.rows[0]?.content_loro) {
-          callback(result.rows[0].content_loro);
-        }
+  private async performSync(): Promise<void> {
+    try {
+      // Send local updates to server
+      if (this.pendingUpdates.length > 0) {
+        await this.pushUpdates();
       }
-    );
-    
-    return () => subscription.unsubscribe();
-  }
-  
-  async saveVersion(documentId: string, version: Version, snapshot: Uint8Array): Promise<void> {
-    await this.db.insert(document_versions).values({
-      id: generateId(),
-      document_id: documentId,
-      version_vector: version.frontiers,
-      shallow_snapshot: snapshot,
-      timestamp: new Date(version.timestamp),
-      message: version.message,
-    });
-  }
-}
-
-// Desktop implementation (Filesystem + SQLite)
-class FilesystemAdapter implements StorageAdapter {
-  private basePath: string;
-  private metadataDb: Database; // SQLite for metadata
-  
-  constructor(basePath: string) {
-    this.basePath = basePath;
-    this.metadataDb = new Database(path.join(basePath, 'metadata.db'));
-    this.initializeDatabase();
-  }
-  
-  private initializeDatabase() {
-    this.metadataDb.exec(`
-      CREATE TABLE IF NOT EXISTS document_versions (
-        id TEXT PRIMARY KEY,
-        document_id TEXT NOT NULL,
-        version_vector TEXT NOT NULL,
-        snapshot_path TEXT NOT NULL,
-        timestamp INTEGER NOT NULL,
-        message TEXT
-      );
       
-      CREATE INDEX IF NOT EXISTS idx_document_versions_doc_id 
-      ON document_versions(document_id);
-    `);
-  }
-  
-  async loadDocument(id: string): Promise<Uint8Array | null> {
-    const filePath = this.getDocumentPath(id);
-    try {
-      return await readBinaryFile(filePath);
-    } catch {
-      return null;
-    }
-  }
-  
-  async saveDocument(id: string, data: Uint8Array): Promise<void> {
-    const filePath = this.getDocumentPath(id);
-    await ensureDir(path.dirname(filePath));
-    await writeBinaryFile(filePath, data);
-  }
-  
-  watchDocument(id: string, callback: (data: Uint8Array) => void): () => void {
-    const filePath = this.getDocumentPath(id);
-    const watcher = chokidar.watch(filePath);
-    
-    watcher.on('change', async () => {
-      const data = await this.loadDocument(id);
-      if (data) callback(data);
-    });
-    
-    return () => watcher.close();
-  }
-  
-  private getDocumentPath(id: string): string {
-    return path.join(this.basePath, 'documents', `${id}.loro`);
-  }
-  
-  private getVersionPath(documentId: string, versionId: string): string {
-    return path.join(this.basePath, 'versions', documentId, `${versionId}.loro`);
-  }
-}
-```
-
-## Version Control System
-
-### Simplified Version Management with Loro
-
-Loro v1.5.0 provides version control capabilities for document history and snapshots:
-
-```typescript
-// Advanced version control system
-class VersionControlSystem {
-  private loroDoc: LoroDoc;
-  private storageAdapter: StorageAdapter;
-  private documentId: string;
-  private versionCache: Map<string, VersionInfo> = new Map();
-  
-  constructor(loroDoc: LoroDoc, storageAdapter: StorageAdapter, documentId: string) {
-    this.loroDoc = loroDoc;
-    this.storageAdapter = storageAdapter;
-    this.documentId = documentId;
-    
-    this.setupVersionHooks();
-  }
-  
-  private setupVersionHooks() {
-    // Use Loro's pre-commit hook for automatic versioning
-    this.loroDoc.subscribePreCommit((event) => {
-      const changes = this.loroDoc.exportJsonInIdSpan(event.changeMeta);
-      const changeHash = this.generateChangeHash(changes);
+      // Pull remote updates from server
+      await this.pullUpdates();
       
-      event.modifier
-        .setMessage(this.generateCommitMessage(changes))
-        .setTimestamp(Date.now())
-        .setOrigin('typyst-editor');
-    });
-    
-    // Track first commits from new peers
-    this.loroDoc.subscribeFirstCommitFromPeer((event) => {
-      this.loroDoc.getMap('collaborators').set(event.peer, {
-        firstCommit: Date.now(),
-        peerId: event.peer,
-      });
-    });
-  }
-  
-  // Create version snapshot with metadata
-  async createVersion(message?: string): Promise<string> {
-    
-    // Set commit message before committing
-    if (message) {
-      this.loroDoc.setNextCommitMessage(message);
-    }
-    
-    this.loroDoc.commit();
-    
-    const versionInfo: VersionInfo = {
-      id: generateId(),
-      frontiers: this.loroDoc.frontiers(),
-      timestamp: Date.now(),
-      message: message || 'Auto-save',
-      changeCount: this.loroDoc.changeCount(),
-      opCount: this.loroDoc.opCount(),
-    };
-    
-    // Create shallow snapshot for efficient storage
-    const snapshot = this.loroDoc.export({
-      mode: 'shallow-snapshot',
-      frontiers: versionInfo.frontiers,
-    });
-    
-    await this.storageAdapter.saveVersion(this.documentId, versionInfo, snapshot);
-    this.versionCache.set(versionInfo.id, versionInfo);
-    
-    return versionInfo.id;
-  }
-  
-  // Time travel to specific version
-  async timeTravel(versionId: string): Promise<TypystEditor> {
-    const versionData = await this.storageAdapter.loadVersion(this.documentId, versionId);
-    
-    if (!versionData) {
-      throw new Error(`Version ${versionId} not found`);
-    }
-    
-    // Fork document at specific frontiers
-    const historicalDoc = this.loroDoc.forkAt(versionData.version.frontiers);
-    
-    // Create new editor instance with historical state
-    return new TypystEditor(historicalDoc.export());
-  }
-  
-  // Compare two versions
-  async compareVersions(fromVersionId: string, toVersionId: string): Promise<VersionDiff> {
-    const fromVersion = await this.storageAdapter.loadVersion(this.documentId, fromVersionId);
-    const toVersion = await this.storageAdapter.loadVersion(this.documentId, toVersionId);
-    
-    if (!fromVersion || !toVersion) {
-      throw new Error('One or both versions not found');
-    }
-    
-    // Find ID spans between versions
-    const idSpans = this.loroDoc.findIdSpansBetween(
-      fromVersion.version.frontiers,
-      toVersion.version.frontiers
-    );
-    
-    // Export changes in the span
-    const changes = this.loroDoc.exportJsonInIdSpan(idSpans);
-    
-    return {
-      fromVersion: fromVersion.version,
-      toVersion: toVersion.version,
-      changes,
-      summary: this.generateDiffSummary(changes),
-    };
-  }
-}
-
-interface VersionInfo {
-  id: string;
-  frontiers: Frontiers;
-  timestamp: number;
-  message?: string;
-  changeCount: number;
-  opCount: number;
-}
-
-interface VersionDiff {
-  fromVersion: VersionInfo;
-  toVersion: VersionInfo;
-  changes: any[];
-  summary: DiffSummary;
-}
-
-interface DiffSummary {
-  insertions: number;
-  deletions: number;
-  modifications: number;
-  affectedSections: string[];
-}
-```
-
-## Storage Architecture
-
-### Multi-Platform Storage Strategy
-
-The storage architecture supports both web (PGLite) and desktop (filesystem) platforms with a unified interface:
-
-```typescript
-// Unified storage manager
-class StorageManager {
-  private adapters: Map<string, StorageAdapter> = new Map();
-  private syncQueue: SyncQueue;
-  private compressionService: CompressionService;
-  
-  constructor() {
-    this.syncQueue = new SyncQueue();
-    this.compressionService = new CompressionService();
-  }
-  
-  // Register storage adapters for different platforms
-  registerAdapter(platform: 'web' | 'desktop', adapter: StorageAdapter) {
-    this.adapters.set(platform, adapter);
-  }
-  
-  // Intelligent storage with compression and deduplication
-  async storeDocument(documentId: string, data: Uint8Array, platform: string): Promise<void> {
-    const adapter = this.adapters.get(platform);
-    if (!adapter) throw new Error(`No adapter for platform: ${platform}`);
-    
-    // Compress large documents
-    const compressedData = await this.compressionService.compress(data);
-    
-    // Store with deduplication
-    const hash = await this.generateHash(compressedData);
-    const existingDoc = await adapter.findByHash(hash);
-    
-    if (!existingDoc) {
-      await adapter.saveDocument(documentId, compressedData);
-      await adapter.saveHash(documentId, hash);
-    } else {
-      // Create reference to existing document
-      await adapter.createReference(documentId, existingDoc.id);
-    }
-  }
-  
-  // Efficient document loading with caching
-  async loadDocument(documentId: string, platform: string): Promise<Uint8Array | null> {
-    const adapter = this.adapters.get(platform);
-    if (!adapter) throw new Error(`No adapter for platform: ${platform}`);
-    
-    // Check cache first
-    const cached = await this.getCachedDocument(documentId);
-    if (cached) return cached;
-    
-    // Load from storage
-    const compressed = await adapter.loadDocument(documentId);
-    if (!compressed) return null;
-    
-    // Decompress and cache
-    const decompressed = await this.compressionService.decompress(compressed);
-    await this.cacheDocument(documentId, decompressed);
-    
-    return decompressed;
-  }
-}
-
-// Advanced compression service
-class CompressionService {
-  private compressionLevel = 6; // Balanced compression
-  
-  async compress(data: Uint8Array): Promise<Uint8Array> {
-    // Use different compression strategies based on data size
-    if (data.length < 1024) {
-      return data; // Don't compress small documents
-    }
-    
-    if (data.length > 1024 * 1024) {
-      // Use streaming compression for large documents
-      return await this.streamCompress(data);
-    }
-    
-    // Standard compression for medium documents
-    return await this.standardCompress(data);
-  }
-  
-  private async streamCompress(data: Uint8Array): Promise<Uint8Array> {
-    const stream = new CompressionStream('gzip');
-    const writer = stream.writable.getWriter();
-    const reader = stream.readable.getReader();
-    
-    writer.write(data);
-    writer.close();
-    
-    const chunks: Uint8Array[] = [];
-    let done = false;
-    
-    while (!done) {
-      const { value, done: readerDone } = await reader.read();
-      done = readerDone;
-      if (value) chunks.push(value);
-    }
-    
-    return this.concatenateArrays(chunks);
-  }
-}
-```
-
-## Performance & Optimization
-
-### Memory Management and Caching
-
-```typescript
-// Intelligent caching system
-class DocumentCache {
-  private cache: Map<string, CacheEntry> = new Map();
-  private maxSize: number = 100 * 1024 * 1024; // 100MB
-  private currentSize: number = 0;
-  private accessOrder: string[] = [];
-  
-  interface CacheEntry {
-    data: Uint8Array;
-    size: number;
-    lastAccessed: number;
-    accessCount: number;
-  }
-  
-  async get(key: string): Promise<Uint8Array | null> {
-    const entry = this.cache.get(key);
-    if (!entry) return null;
-    
-    // Update access statistics
-    entry.lastAccessed = Date.now();
-    entry.accessCount++;
-    
-    // Move to end of access order (most recently used)
-    const index = this.accessOrder.indexOf(key);
-    if (index > -1) {
-      this.accessOrder.splice(index, 1);
-    }
-    this.accessOrder.push(key);
-    
-    return entry.data;
-  }
-  
-  async set(key: string, data: Uint8Array): Promise<void> {
-    const size = data.length;
-    
-    // Evict if necessary
-    while (this.currentSize + size > this.maxSize && this.cache.size > 0) {
-      await this.evictLeastRecentlyUsed();
-    }
-    
-    // Add new entry
-    this.cache.set(key, {
-      data,
-      size,
-      lastAccessed: Date.now(),
-      accessCount: 1,
-    });
-    
-    this.currentSize += size;
-    this.accessOrder.push(key);
-  }
-  
-  private async evictLeastRecentlyUsed(): Promise<void> {
-    if (this.accessOrder.length === 0) return;
-    
-    const keyToEvict = this.accessOrder.shift()!;
-    const entry = this.cache.get(keyToEvict);
-    
-    if (entry) {
-      this.cache.delete(keyToEvict);
-      this.currentSize -= entry.size;
-    }
-  }
-}
-
-// Performance monitoring
-class PerformanceMonitor {
-  private metrics: Map<string, PerformanceMetric> = new Map();
-  
-  interface PerformanceMetric {
-    name: string;
-    count: number;
-    totalTime: number;
-    averageTime: number;
-    minTime: number;
-    maxTime: number;
-  }
-  
-  async measure<T>(name: string, operation: () => Promise<T>): Promise<T> {
-    const startTime = performance.now();
-    
-    try {
-      const result = await operation();
-      const endTime = performance.now();
-      const duration = endTime - startTime;
-      
-      this.recordMetric(name, duration);
-      
-      return result;
     } catch (error) {
-      const endTime = performance.now();
-      const duration = endTime - startTime;
-      
-      this.recordMetric(`${name}_error`, duration);
-      throw error;
+      console.error('Sync failed:', error);
+      // Implement exponential backoff here
     }
   }
   
-  private recordMetric(name: string, duration: number): void {
-    const existing = this.metrics.get(name);
+  private async pushUpdates(): Promise<void> {
+    const updates = [...this.pendingUpdates];
+    this.pendingUpdates = [];
     
-    if (existing) {
-      existing.count++;
-      existing.totalTime += duration;
-      existing.averageTime = existing.totalTime / existing.count;
-      existing.minTime = Math.min(existing.minTime, duration);
-      existing.maxTime = Math.max(existing.maxTime, duration);
-    } else {
-      this.metrics.set(name, {
-        name,
-        count: 1,
-        totalTime: duration,
-        averageTime: duration,
-        minTime: duration,
-        maxTime: duration,
+    for (const update of updates) {
+      await fetch('/api/sync/push', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/octet-stream',
+          'Authorization': `Bearer ${await this.getAuthToken()}`
+        },
+        body: update
       });
     }
   }
   
-  getMetrics(): PerformanceMetric[] {
-    return Array.from(this.metrics.values());
+  private async pullUpdates(): Promise<void> {
+    const response = await fetch('/api/sync/pull', {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${await this.getAuthToken()}`
+      }
+    });
+    
+    if (response.ok) {
+      const updates = await response.arrayBuffer();
+      if (updates.byteLength > 0) {
+        this.loroDoc.import(new Uint8Array(updates));
+        await this.persistToLocal();
+      }
+    }
+  }
+  
+  private setupLocalUpdateHandling(): void {
+    this.loroDoc.subscribeLocalUpdates((update: Uint8Array) => {
+      this.pendingUpdates.push(update);
+    });
+  }
+  
+  // Platform-specific local persistence
+  private async persistToLocal(): Promise<void> {
+    if (this.isDesktop()) {
+      await this.persistToFilesystem();
+    } else {
+      await this.persistToPGLite();
+    }
+  }
+  
+  private async persistToFilesystem(): Promise<void> {
+    // Desktop: Export collections to filesystem
+    const collections = this.loroDoc.getMap('collections');
+    
+    for (const [collectionId, collection] of collections.entries()) {
+      const collectionData = collection as TypystCollection;
+      const collectionPath = collectionData.metadata.get('path') as string;
+      
+      // Ensure collection directory exists
+      await this.ensureDirectory(collectionPath);
+      
+      // Write documents to filesystem
+      const documents = collectionData.documents;
+      await this.writeDocumentsToFilesystem(documents, collectionPath);
+      
+      // Update collection metadata
+      await this.writeCollectionMetadata(collectionPath, collectionData.metadata);
+    }
+  }
+  
+  private async persistToPGLite(): Promise<void> {
+    // Web: Update PGLite database
+    const collections = this.loroDoc.getMap('collections');
+    
+    for (const [collectionId, collection] of collections.entries()) {
+      const collectionData = collection as TypystCollection;
+      
+      // Update collection in PGLite
+      await this.updatePGLiteCollection(collectionData);
+      
+      // Update documents in PGLite
+      const documents = collectionData.documents;
+      await this.updatePGLiteDocuments(documents, collectionId);
+    }
   }
 }
 ```
 
-## Security Architecture
+## CRDT Integration Strategy
 
-### End-to-End Encryption (Future Enhancement)
+### Collection Tree Management
 
 ```typescript
-// Encryption service for sensitive documents
-class EncryptionService {
-  private keyManager: KeyManager;
+class CollectionManager {
+  private loroDoc: LoroDoc;
+  private collectionsMap: LoroMap;
   
-  constructor() {
-    this.keyManager = new KeyManager();
+  constructor(loroDoc: LoroDoc) {
+    this.loroDoc = loroDoc;
+    this.collectionsMap = loroDoc.getMap('collections');
   }
   
-  async encryptDocument(data: Uint8Array, userId: string): Promise<EncryptedDocument> {
-    const userKey = await this.keyManager.getUserKey(userId);
-    const documentKey = await this.generateDocumentKey();
+  // Create new collection
+  createCollection(name: string, path: string): string {
+    const collectionId = crypto.randomUUID();
+    const collection = this.loroDoc.getMap(`collection_${collectionId}`);
     
-    // Encrypt document with document key
-    const encryptedContent = await this.encrypt(data, documentKey);
+    // Set collection metadata
+    const metadata = collection.getMap('metadata');
+    metadata.set('id', collectionId);
+    metadata.set('name', name);
+    metadata.set('path', path);
+    metadata.set('createdAt', Date.now());
+    metadata.set('updatedAt', Date.now());
     
-    // Encrypt document key with user key
-    const encryptedKey = await this.encrypt(documentKey, userKey);
+    // Initialize document tree
+    const documents = collection.getTree('documents');
+    documents.enableFractionalIndex(0.1); // Enable automatic ordering
+    
+    // Add to collections map
+    this.collectionsMap.set(collectionId, collection);
+    
+    return collectionId;
+  }
+  
+  // Add document to collection
+  addDocument(collectionId: string, parentPath: string | null, name: string, content: string): string {
+    const collection = this.collectionsMap.get(collectionId) as LoroMap;
+    const documents = collection.getTree('documents');
+    
+    // Create document node
+    const documentId = crypto.randomUUID();
+    const relativePath = parentPath ? `${parentPath}/${name}` : name;
+    
+    const nodeId = documents.create(parentPath);
+    const nodeData = documents.getMap(nodeId);
+    
+    nodeData.set('id', documentId);
+    nodeData.set('path', relativePath);
+    nodeData.set('name', name);
+    nodeData.set('isFolder', false);
+    
+    // Add content if it's a document
+    if (!name.endsWith('/')) {
+      const contentText = documents.createText();
+      contentText.insert(0, content);
+      nodeData.set('content', contentText);
+      
+      const metadata = documents.createMap();
+      metadata.set('wordCount', content.split(/\s+/).length);
+      metadata.set('lastModified', Date.now());
+      metadata.set('tags', []);
+      nodeData.set('metadata', metadata);
+    }
+    
+    // Update collection timestamp
+    const collectionMetadata = collection.getMap('metadata');
+    collectionMetadata.set('updatedAt', Date.now());
+    
+    return documentId;
+  }
+  
+  // Move document within collection
+  moveDocument(collectionId: string, documentId: string, newParentPath: string | null, newIndex?: number): void {
+    const collection = this.collectionsMap.get(collectionId) as LoroMap;
+    const documents = collection.getTree('documents');
+    
+    // Find document node
+    const nodeId = this.findDocumentNode(documents, documentId);
+    if (nodeId) {
+      documents.move(nodeId, newParentPath, newIndex);
+      
+      // Update paths recursively
+      this.updateDocumentPaths(documents, nodeId);
+    }
+  }
+  
+  // Get collection structure for UI
+  getCollectionStructure(collectionId: string): any {
+    const collection = this.collectionsMap.get(collectionId) as LoroMap;
+    if (!collection) return null;
+    
+    const metadata = collection.getMap('metadata').toJSON();
+    const documents = collection.getTree('documents').toJSON();
     
     return {
-      content: encryptedContent,
-      encryptedKey,
-      algorithm: 'AES-GCM',
-      keyId: userKey.id,
+      metadata,
+      documents: this.buildDocumentTree(documents)
     };
   }
   
-  async decryptDocument(encrypted: EncryptedDocument, userId: string): Promise<Uint8Array> {
-    const userKey = await this.keyManager.getUserKey(userId);
-    
-    // Decrypt document key
-    const documentKey = await this.decrypt(encrypted.encryptedKey, userKey);
-    
-    // Decrypt content
-    return await this.decrypt(encrypted.content, documentKey);
-  }
-  
-  private async encrypt(data: Uint8Array, key: CryptoKey): Promise<Uint8Array> {
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const encrypted = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      key,
-      data
-    );
-    
-    // Prepend IV to encrypted data
-    const result = new Uint8Array(iv.length + encrypted.byteLength);
-    result.set(iv);
-    result.set(new Uint8Array(encrypted), iv.length);
-    
-    return result;
+  private buildDocumentTree(documents: any): any[] {
+    // Convert Loro tree structure to hierarchical array for UI
+    // Implementation depends on Loro tree JSON format
+    return documents; // Simplified for now
   }
 }
+```
 
-// Access control system
-class AccessControlSystem {
-  private permissions: Map<string, DocumentPermissions> = new Map();
+## Storage Strategy
+
+### Desktop Filesystem Integration
+
+```typescript
+class DesktopStorageAdapter {
+  private basePath: string;
+  private collectionManager: CollectionManager;
   
-  interface DocumentPermissions {
-    documentId: string;
-    owner: string;
-    readers: Set<string>;
-    writers: Set<string>;
-    commenters: Set<string>;
-    publicRead: boolean;
-    publicWrite: boolean;
+  constructor(basePath: string, collectionManager: CollectionManager) {
+    this.basePath = basePath;
+    this.collectionManager = collectionManager;
   }
   
-  async checkPermission(documentId: string, userId: string, action: 'read' | 'write' | 'comment'): Promise<boolean> {
-    const permissions = this.permissions.get(documentId);
-    if (!permissions) return false;
+  // Sync Loro state to filesystem
+  async syncToFilesystem(collectionId: string): Promise<void> {
+    const structure = this.collectionManager.getCollectionStructure(collectionId);
+    if (!structure) return;
     
-    // Owner has all permissions
-    if (permissions.owner === userId) return true;
+    const collectionPath = structure.metadata.path;
     
-    // Check specific permissions
-    switch (action) {
-      case 'read':
-        return permissions.publicRead || permissions.readers.has(userId);
-      case 'write':
-        return permissions.publicWrite || permissions.writers.has(userId);
-      case 'comment':
-        return permissions.commenters.has(userId) || 
-               permissions.writers.has(userId) || 
-               permissions.readers.has(userId);
-      default:
-        return false;
-    }
+    // Ensure collection directory exists
+    await this.ensureDirectory(collectionPath);
+    
+    // Write all documents
+    await this.writeDocuments(structure.documents, collectionPath);
+    
+    // Write collection metadata
+    await this.writeCollectionMetadata(collectionPath, structure.metadata);
   }
   
-  async grantPermission(documentId: string, userId: string, permission: 'read' | 'write' | 'comment', grantedBy: string): Promise<void> {
-    const permissions = this.permissions.get(documentId);
-    if (!permissions) throw new Error('Document not found');
+  // Load filesystem changes into Loro
+  async loadFromFilesystem(collectionPath: string): Promise<string> {
+    // Scan filesystem and create/update Loro collection
+    const collectionId = await this.findOrCreateCollection(collectionPath);
     
-    // Only owner can grant permissions
-    if (permissions.owner !== grantedBy) {
-      throw new Error('Insufficient permissions');
+    // Recursively scan and add documents
+    await this.scanAndAddDocuments(collectionPath, collectionId);
+    
+    return collectionId;
+  }
+  
+  private async writeDocuments(documents: any[], basePath: string): Promise<void> {
+    for (const doc of documents) {
+      const fullPath = path.join(basePath, doc.path);
+      
+      if (doc.isFolder) {
+        await this.ensureDirectory(fullPath);
+        if (doc.children) {
+          await this.writeDocuments(doc.children, basePath);
+        }
+      } else {
+        // Write document content
+        const content = doc.content || '';
+        await writeTextFile(fullPath, content);
+      }
     }
+  }
+}
+```
+
+### Web PGLite Integration
+
+```typescript
+class WebStorageAdapter {
+  private db: PGliteDatabase;
+  private collectionManager: CollectionManager;
+  
+  constructor(db: PGliteDatabase, collectionManager: CollectionManager) {
+    this.db = db;
+    this.collectionManager = collectionManager;
+  }
+  
+  // Sync Loro state to PGLite
+  async syncToPGLite(collectionId: string): Promise<void> {
+    const structure = this.collectionManager.getCollectionStructure(collectionId);
+    if (!structure) return;
     
-    switch (permission) {
-      case 'read':
-        permissions.readers.add(userId);
-        break;
-      case 'write':
-        permissions.writers.add(userId);
-        break;
-      case 'comment':
-        permissions.commenters.add(userId);
-        break;
+    // Update collection record
+    await this.db.update(collection)
+      .set({
+        name: structure.metadata.name,
+        lastOpened: new Date(structure.metadata.updatedAt)
+      })
+      .where(eq(collection.path, structure.metadata.path));
+    
+    // Update all documents
+    await this.updateDocuments(structure.documents, structure.metadata.path);
+  }
+  
+  private async updateDocuments(documents: any[], collectionPath: string): Promise<void> {
+    for (const doc of documents) {
+      const entryPath = `${collectionPath}/${doc.path}`;
+      
+      // Upsert document
+      await this.db.insert(entry)
+        .values({
+          path: entryPath,
+          parentPath: doc.parentPath || collectionPath,
+          collectionPath: collectionPath,
+          content: doc.content || '',
+          isFolder: doc.isFolder,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        })
+        .onConflictDoUpdate({
+          target: entry.path,
+          set: {
+            content: doc.content || '',
+            updatedAt: new Date()
+          }
+        });
+      
+      // Recursively handle children
+      if (doc.children) {
+        await this.updateDocuments(doc.children, collectionPath);
+      }
     }
+  }
+}
+```
+
+## API Design
+
+### Supabase REST API Endpoints
+
+```typescript
+// API Routes for sync
+export const syncRoutes = {
+  // Get user's sync document
+  GET: '/api/sync/document',
+  
+  // Push updates to user's sync document
+  POST: '/api/sync/push',
+  
+  // Pull latest updates
+  GET: '/api/sync/pull',
+  
+  // Initialize new user sync document
+  POST: '/api/sync/initialize'
+};
+
+// API Implementation
+class SyncAPI {
+  private supabase: SupabaseClient;
+  
+  constructor() {
+    this.supabase = createClient(
+      process.env.SUPABASE_URL!,
+      process.env.SUPABASE_ANON_KEY!
+    );
+  }
+  
+  async getUserSyncDocument(userId: string): Promise<UserSyncDocument | null> {
+    const { data, error } = await this.supabase
+      .from('user_sync_documents')
+      .select('loro_data, version_vector')
+      .eq('user_id', userId)
+      .single();
     
-    await this.savePermissions(documentId, permissions);
+    if (error || !data) return null;
+    
+    return {
+      loroData: data.loro_data,
+      versionVector: data.version_vector
+    };
+  }
+  
+  async pushUpdate(userId: string, update: Uint8Array): Promise<void> {
+    // Store update in sync history
+    await this.supabase
+      .from('sync_history')
+      .insert({
+        user_id: userId,
+        device_id: this.getDeviceId(),
+        loro_update: update,
+        timestamp: new Date().toISOString()
+      });
+    
+    // Apply update to user's sync document
+    await this.applyUpdateToUserDocument(userId, update);
+  }
+  
+  async pullUpdates(userId: string, since: Date): Promise<Uint8Array[]> {
+    const { data, error } = await this.supabase
+      .from('sync_history')
+      .select('loro_update')
+      .eq('user_id', userId)
+      .gt('timestamp', since.toISOString())
+      .order('timestamp', { ascending: true });
+    
+    if (error || !data) return [];
+    
+    return data.map(row => row.loro_update);
   }
 }
 ```
 
 ## Implementation Phases
 
-### Phase 1: Foundation Setup (2-3 weeks)
-1. **Development Environment**
-   - Set up Docker Compose with PostgreSQL and Electric SQL
-   - Configure Supabase for production PostgreSQL
-   - Install and configure Better Auth for authentication
+### Phase 1: Foundation (1-2 weeks)
+1. **Supabase Setup**
+   - Create Supabase project
+   - Set up database schema
+   - Configure Better Auth
 
-2. **Core Dependencies**
-   - Install Loro CRDT v1.5.0+
-   - Set up Electric SQL client v1.0.4+
-   - Configure loro-prosemirror for TipTap integration
+2. **Basic Loro Integration**
+   - Add Loro CRDT to both apps
+   - Create unified collection data structure
+   - Basic document operations
 
-3. **Basic Authentication**
-   - Implement Better Auth server and client setup
-   - Create user registration and login flows
-   - Set up Row Level Security policies in PostgreSQL
+3. **Authentication**
+   - Implement Better Auth in both apps
+   - Email/password sign up/in
+   - Session management
 
-### Phase 2: CRDT Document System (3-4 weeks)
-1. **Loro Integration**
-   - Create basic document structure with LoroText and LoroMap
-   - Implement TipTap + loro-prosemirror binding (no custom extensions)
-   - Set up peer ID generation and device identification
+### Phase 2: Core Sync (2-3 weeks)
+1. **API Implementation**
+   - Supabase REST API endpoints
+   - Push/pull sync operations
+   - Error handling and retries
 
 2. **Storage Adapters**
-   - Create filesystem adapter for desktop app with Loro CRDT
-   - Create PGLite adapter for web app with Loro CRDT
-   - Implement unified storage interface
+   - Desktop filesystem persistence
+   - Web PGLite integration
+   - Bidirectional sync
 
-3. **Basic Document Operations**
-   - Create, read, update document operations
-   - Implement debounced sync (500ms delay)
-   - Handle graceful error scenarios with retry logic
+3. **Real-time Sync**
+   - Polling-based sync (2-second intervals)
+   - Conflict resolution via Loro
+   - Local update handling
 
-### Phase 3: Electric SQL Sync (3-4 weeks)
-1. **Electric Setup**
-   - Configure Electric SQL shapes for authenticated users
-   - Set up bidirectional sync between platforms
-   - Implement user-scoped data synchronization
+### Phase 3: Polish & Testing (1-2 weeks)
+1. **UI Integration**
+   - Sync status indicators
+   - Conflict resolution UI
+   - Error handling UX
 
-2. **Conflict Resolution**
-   - Test Loro's automatic merge conflict resolution
-   - Handle offline editing and sync scenarios
-   - Implement exponential backoff for failed syncs
+2. **Performance Optimization**
+   - Debounced updates
+   - Efficient polling
+   - Memory management
 
-3. **Version Control**
-   - Implement version snapshots using Loro's built-in capabilities
-   - Create time travel functionality with forkAt
-   - Add basic version history tracking
+3. **Testing**
+   - Cross-platform sync scenarios
+   - Conflict resolution testing
+   - Network failure handling
 
 ## Testing Strategy
 
 ### Key Test Scenarios
+1. **Authentication Flow**
+   - Sign up/in on both platforms
+   - Session persistence
+   - Token refresh
 
-1. **Authentication & Authorization Testing**
-   - User registration and login flows
-   - Row Level Security policy enforcement
-   - Session management across platforms
+2. **Collection Sync**
+   - Create collection on desktop, verify on web
+   - Add documents simultaneously on both platforms
+   - Rename/move operations
 
-2. **Cross-Platform Sync Testing**
-   - Edit document offline on desktop, sync when online
-   - Edit same document offline on web, test Loro's automatic merge resolution
-   - Verify conflict-free synchronization between platforms
+3. **Conflict Resolution**
+   - Edit same document on both platforms offline
+   - Verify Loro automatic merge
+   - Complex tree operations (move/rename conflicts)
 
-3. **Performance Testing**
-   - Large document handling (10k+ lines)
-   - Debounced sync performance (500ms delay)
-   - Memory usage with Loro CRDT operations
+4. **Network Scenarios**
+   - Offline editing and sync when online
+   - Network interruption during sync
+   - Partial sync failures
 
-4. **Error Handling & Resilience**
-   - Network interruption during sync with exponential backoff
-   - Electric SQL server unavailability
-   - Graceful degradation when offline
-
-5. **Electric SQL Integration Testing**
-   - Shape subscription and updates
-   - User-scoped data synchronization
-   - PostgreSQL logical replication performance
-
-
-
-## Development Setup
-
-### Electric SQL Development Environment
-
-Following Electric SQL best practices for development:
-
-```yaml
-# docker-compose.yaml for development
-version: "3.3"
-name: "typyst_development"
-services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: typyst
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    ports:
-      - 54321:5432
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    command:
-      - -c
-      - listen_addresses=*
-      - -c
-      - wal_level=logical
-      
-  electric:
-    image: electricsql/electric:1.0.18
-    environment:
-      DATABASE_URL: postgresql://postgres:password@postgres:5432/typyst?sslmode=disable
-      ELECTRIC_INSECURE: true # Only for development
-    ports:
-      - "3000:3000"
-    depends_on:
-      - postgres
-
-volumes:
-  postgres_data:
-```
-
-### Better Auth Setup
-
-```typescript
-// auth.ts - Server configuration
-import { betterAuth } from "better-auth";
-import { database } from "./database"; // Your database connection
-
-export const auth = betterAuth({
-  database,
-  emailAndPassword: {
-    enabled: true,
-    autoSignIn: true
-  },
-  socialProviders: {
-    github: {
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    }
-  },
-  // Additional Better Auth configuration
-});
-
-// auth-client.ts - Client configuration
-import { createAuthClient } from "better-auth/client";
-
-export const authClient = createAuthClient({
-  baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000"
-});
-```
-
-### No Migration Required
-
-Since this is a **greenfield implementation**, there is no existing data to migrate. The development approach is:
-
-1. **Start Fresh**: Build new applications with Loro CRDT from the beginning
-2. **Unified Architecture**: Both web and desktop apps use the same data structures
-3. **Clean Implementation**: No legacy code or data format compatibility concerns
-4. **Modern Stack**: Use latest versions of all technologies from day one
-
-## Future Enhancements
-
-### Potential Additions
-1. **Multi-user collaboration** - Add live cursors and presence when needed
-2. **Mobile apps** - Extend sync to iOS/Android platforms
-3. **Advanced version control** - Add branching and semantic versioning
-4. **End-to-end encryption** - For sensitive documents
-5. **AI integration** - Smart editing assistance and content generation
-
-## Conclusion
-
-This updated technical plan provides a clear roadmap for building Typyst as a local-first editor with cross-platform sync from the ground up. The architecture leverages modern, proven technologies:
-
-### Key Technical Achievements
-
-1. **Modern Authentication**: Better Auth for secure user management and session handling
-2. **CRDT State Management**: Loro v1.5.0 for automatic conflict resolution and document state
-3. **Efficient Transport**: Electric SQL for data synchronization between PostgreSQL and clients
-4. **Managed Infrastructure**: Supabase for PostgreSQL hosting with logical replication
-5. **Cross-Platform Sync**: Seamless synchronization between web (PGLite) and desktop (filesystem)
-6. **Graceful Error Handling**: Debounced updates, exponential backoff, and offline resilience
-
-### Implementation Benefits
-
-- **Greenfield Advantage**: Clean implementation without legacy migration concerns
-- **Automatic Conflict Resolution**: Loro CRDT handles merge conflicts transparently
-- **Scalable Architecture**: Electric SQL + Supabase can handle growth
-- **Developer Experience**: Modern tooling with TypeScript, SvelteKit, and Docker
-- **Security First**: Row Level Security and authenticated user scoping
-- **Offline-First**: Full functionality without internet connection
-
-### Technology Clarifications
-
-- **Electric SQL**: Handles transport layer and data synchronization
-- **Loro CRDT**: Manages document state and conflict resolution
-- **Better Auth**: Provides authentication and user management
-- **Supabase**: Managed PostgreSQL with logical replication enabled
-- **No Custom Extensions**: Using standard TipTap extensions initially
-
-The phased implementation approach (9-11 weeks total) ensures steady progress while building a robust, modern sync solution. The architecture is designed for single-user cross-platform sync but can be extended for collaboration features in the future. 
+This simplified approach focuses on the core sync functionality using proven technologies while maintaining the flexibility to enhance with more advanced features later. 
