@@ -2,10 +2,9 @@ import { OS_TRASH_DIR } from '@/constants';
 import { activeFile, collection, collectionSettings, editor, noteHistory, platform } from '@/store';
 import type { NoteMetadataParams } from '@/types';
 import { calculateReadingTime, getNextUntitledName, setEditorContent } from '@/utils';
-import { readDir, readTextFile, removeFile, renameFile, writeTextFile } from '@tauri-apps/api/fs';
+import { readDir, readTextFile, remove, rename, writeTextFile, stat } from '@tauri-apps/plugin-fs';
 import { homeDir } from '@tauri-apps/api/path';
 import { get } from 'svelte/store';
-import { metadata } from 'tauri-plugin-fs-extra-api';
 
 // Create a new note
 export const createNote = async (dirPath: string, name?: string) => {
@@ -43,16 +42,16 @@ export async function openNote(path: string, skipHistory = false) {
 export const deleteNote = async (path: string) => {
 	switch (get(collectionSettings).notes.trash_dir) {
 		case 'system':
-			await renameFile(
+			await rename(
 				path,
 				`${await homeDir()}${OS_TRASH_DIR[get(platform)]}${path.split('/').pop()!}`
 			);
 			break;
 		case 'typyst':
-			await renameFile(path, `${get(collection)}/.typyst/trash/${path.split('/').pop()!}`);
+			await rename(path, `${get(collection)}/.typyst/trash/${path.split('/').pop()!}`);
 			break;
 		case 'delete':
-			await removeFile(path);
+			await remove(path);
 			break;
 	}
 	activeFile.set(null);
@@ -81,7 +80,7 @@ export const renameNote = async (path: string, name: string) => {
 	}
 
 	// Rename the file
-	await renameFile(path, `${path.split('/').slice(0, -1).join('/')}/${name}`);
+	await rename(path, `${path.split('/').slice(0, -1).join('/')}/${name}`);
 	activeFile.set(`${path.split('/').slice(0, -1).join('/')}/${name}`);
 };
 
@@ -107,7 +106,7 @@ export const moveNote = async (source: string, target: string) => {
 		throw new Error('Name conflict');
 	}
 
-	await renameFile(source, target + '/' + noteName);
+	await rename(source, target + '/' + noteName);
 	openNote(target + '/' + noteName);
 };
 
@@ -139,7 +138,7 @@ export const duplicateNote = async (path: string) => {
 
 export const getNoteMetadataParams = async (path: string): Promise<NoteMetadataParams> => {
 	// General file metadata
-	const fileMetadata = await metadata(path);
+	const fileMetadata = await stat(path);
 
 	// Get editor metadata
 	const editorWordCount = get(editor).storage.characterCount.words();

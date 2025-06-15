@@ -3,13 +3,13 @@
 	import Footer from '@/components/layout/footer.svelte';
 	import Header from '@/components/layout/header.svelte';
 	import Sidebar from '@/components/layout/sidebar.svelte';
-	import { platform as osPlatform } from '@tauri-apps/api/os';
+	import { platform as osPlatform } from '@tauri-apps/plugin-os';
 	import Command from '@/components/shared/command-menu/command.svelte';
 	import { appTheme, collection, platform } from '@/store';
 	import { updateWindowTheme, validateTypystFolder } from '@/utils';
 	import '@typyst/ui/app.desktop.css';
-	import { BaseDirectory, readTextFile } from '@tauri-apps/api/fs';
-	import { invoke } from '@tauri-apps/api/tauri';
+	import { BaseDirectory, readTextFile } from '@tauri-apps/plugin-fs';
+	import { invoke } from '@tauri-apps/api/core';
 	import { onMount } from 'svelte';
 
 	// Prevent right-clicking in production

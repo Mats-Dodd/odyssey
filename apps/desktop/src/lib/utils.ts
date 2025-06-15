@@ -1,6 +1,6 @@
 import { emit } from '@tauri-apps/api/event';
-import { createDir, readDir, type FileEntry } from '@tauri-apps/api/fs';
-import { invoke } from '@tauri-apps/api/tauri';
+import { mkdir, readDir, type FileEntry } from '@tauri-apps/plugin-fs';
+import { invoke } from '@tauri-apps/api/core';
 import { EditorState } from '@tiptap/pm/state';
 import { clsx, type ClassValue } from 'clsx';
 import { cubicOut } from 'svelte/easing';
@@ -154,13 +154,13 @@ export async function validateTypystFolder(path: string) {
 
 	if (!typystFolder) {
 		// Create .typyst folder
-		await createDir(path + '/.typyst');
+		await mkdir(path + '/.typyst');
 
 		// Create trash folder
-		await createDir(path + '/.typyst/trash');
+		await mkdir(path + '/.typyst/trash');
 
 		// Create daily folder
-		await createDir(path + '/.typyst/daily');
+		await mkdir(path + '/.typyst/daily');
 	}
 }
 

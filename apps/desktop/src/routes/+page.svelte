@@ -4,7 +4,7 @@
 	import { SHORTCUTS } from '@/constants';
 	import Shortcut from '@/components/shared/shortcut.svelte';
 	import { getCollections } from '$lib/api/collection';
-	import { open as browserOpen } from '@tauri-apps/api/shell';
+	import { open as browserOpen } from '@tauri-apps/plugin-shell';
 	import { onMount } from 'svelte';
 
 	let githubShortcut = { command: true, key: 'g' };

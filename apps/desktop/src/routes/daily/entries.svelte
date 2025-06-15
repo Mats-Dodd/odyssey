@@ -1,5 +1,5 @@
 <script lang="ts">
-	import type { FileEntry } from '@tauri-apps/api/fs';
+	import type { FileEntry } from '@tauri-apps/plugin-fs';
 	import Button from '@typyst/ui/components/button/button.svelte';
 	import * as ContextMenu from '@typyst/ui/components/context-menu';
 	import Icon from '@/components/shared/icon.svelte';

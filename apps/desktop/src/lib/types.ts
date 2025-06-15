@@ -1,4 +1,4 @@
-import type { Metadata } from 'tauri-plugin-fs-extra-api';
+import type { Metadata } from '@tauri-apps/plugin-fs';
 
 export interface ShortcutParams {
 	alt?: boolean;
