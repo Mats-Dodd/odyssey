@@ -799,8 +799,7 @@ export function createTauriMutation<TData, TVariables>(
 
 2. **Week 2: Auth Package Updates**
    - Update `@typyst/auth` to use `@typyst/db`
-   - Maintain backward compatibility
-   - Update types exports
+   - Maintain existing API surface
 
 3. **Week 3: Web App Migration**
    - Update all imports in `apps/app`
@@ -827,6 +826,17 @@ export function createTauriMutation<TData, TVariables>(
 3. **E2E Tests:** Ensure auth flow works end-to-end
 4. **Migration Tests:** Ensure existing data migrations work
 5. **Query Tests:** Test cache invalidation and optimistic updates
+
+### 4.3. Engineering Notes
+
+- Resolve potential circular dependency between `@typyst/auth` and `@typyst/db` by importing only the database adapter into the auth package
+- Cross-DB Foreign Keys: once the schema is split, any FK from `app` tables (`collection`, `entry`, …) to `user.id` can no longer be enforced in PGLite.  Either (a) drop those FK constraints in the `app` schema or (b) duplicate a minimal `user` table in PGLite purely for referential integrity.
+- Package Export Maps: add sub-path exports (e.g. `"./auth"`, `"./app"`) and matching `typesVersions` entries in `packages/db/package.json` so `import { user } from '@typyst/db/auth'` is type-safe.
+- Env Vars in Browser: replace `process.env.*` in browser-side code with SvelteKit `$env/static/public` (e.g. `PUBLIC_SUPABASE_URL`) to avoid undefined variables at runtime.
+- TanStack Query Version: lock an exact `@tanstack/svelte-query` version across all packages to prevent peer-dependency drift.
+- Build/Tooling Path Aliases: update every `tsconfig.json`, Vite alias, and ESLint config to recognise `@typyst/db`, `@typyst/queries`, etc.
+- Turbo / pnpm Pipelines: declare `packages/db` and `packages/queries` as build dependencies of `apps/app` so incremental builds work.
+- Shared Test Setup: add a root `vitest.config.ts` (or `@typyst/config-vitest`) consumed by each new package for unit tests.
 
 ---
 
