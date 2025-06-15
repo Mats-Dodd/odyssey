@@ -2,22 +2,44 @@
   "name": "@typyst/db",
   "version": "1.0.0",
   "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "exports": {
-    ".": "./src/index.ts",
-    "./supabase": "./src/client/supabase-db.ts",
-    "./pglite": "./src/client/pglite-db.ts",
-    "./schema": "./src/schema/index.ts",
-    "./schema/auth": "./src/schema/auth.ts",
-    "./schema/app": "./src/schema/app.ts"
-  },
-  "typesVersions": {
-    "*": {
-      "supabase": ["./src/client/supabase-db.ts"],
-      "pglite": ["./src/client/pglite-db.ts"],
-      "schema": ["./src/schema/index.ts"],
-      "schema/auth": ["./src/schema/auth.ts"],
-      "schema/app": ["./src/schema/app.ts"]
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./supabase": {
+      "types": "./dist/client/supabase-db.d.ts",
+      "import": "./dist/client/supabase-db.js"
+    },
+    "./pglite": {
+      "types": "./dist/client/pglite-db.d.ts",
+      "import": "./dist/client/pglite-db.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "import": "./dist/schema/index.js"
+    },
+    "./schema/auth": {
+      "types": "./dist/schema/auth.d.ts",
+      "import": "./dist/schema/auth.js"
+    },
+    "./schema/app": {
+      "types": "./dist/schema/app.d.ts",
+      "import": "./dist/schema/app.js"
     }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate", 
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "drizzle-orm": "^0.33.0",
@@ -30,11 +52,5 @@
     "typescript": "^5.0.0",
     "@types/node": "^22.0.0",
     "@typyst/eslint-config": "workspace:*"
-  },
-  "scripts": {
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate", 
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
   }
 } 

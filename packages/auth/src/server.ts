@@ -1,15 +1,9 @@
-import { betterAuth, type Adapter } from 'better-auth';
+import { betterAuth } from 'better-auth';
+import type { createSupabaseDatabase } from '@typyst/db';
 import type { AuthUser, AuthSession } from './types.js';
 
 export interface AuthServerConfig {
-  database:
-    | {
-        provider: 'sqlite' | 'postgres' | 'mysql';
-        url: string;
-      }
-    | {
-        adapter: Adapter;
-      };
+  database: ReturnType<typeof createSupabaseDatabase>;
   secret: string;
   baseURL: string;
   trustedOrigins?: string[];
@@ -21,7 +15,7 @@ export interface AuthServerConfig {
 
 export function createAuthServer(config: AuthServerConfig) {
   const auth = betterAuth({
-    database: 'adapter' in config.database ? config.database.adapter : config.database,
+    database: config.database.adapter,
     secret: config.secret,
     baseURL: config.baseURL,
     trustedOrigins: config.trustedOrigins,
@@ -47,6 +41,7 @@ export function createAuthServer(config: AuthServerConfig) {
 
   return {
     auth,
+    handler: auth.handler,
     // Server-side authentication methods
     signUp: async (data: { email: string; password: string; name: string; image?: string }) => {
       try {

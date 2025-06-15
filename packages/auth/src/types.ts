@@ -19,6 +19,9 @@ export interface AuthSession extends Session {
   userAgent?: string;
 }
 
+// Re-export database types for convenience
+export type { User as DatabaseUser, Session as DatabaseSession } from '@typyst/db';
+
 export interface SignUpData {
   email: string;
   password: string;
