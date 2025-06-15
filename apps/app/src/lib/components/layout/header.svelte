@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { collection } from '$lib/store';
 	import Button from '@typyst/ui/components/button/button.svelte';
+	import { isAuthenticated, user } from '$lib/auth-client';
 </script>
 
 <header
@@ -12,7 +13,26 @@
 	>
 		{$collection?.split('/').pop() || ''}
 	</p>
-	<div class="flex gap-1">
+	<div class="flex gap-1 items-center">
+		{#if $isAuthenticated}
+			<span class="text-sm text-muted-foreground mr-2">
+				Welcome, {$user?.name || $user?.email}
+			</span>
+			<a href="/auth/sign-out">
+				<Button variant="secondary" size="sm" scale="sm" class="rounded-full h-[27px] px-2.5">
+					Sign Out
+				</Button>
+			</a>
+		{:else}
+			<a href="/auth/sign-in">
+				<Button variant="secondary" size="sm" scale="sm" class="rounded-full h-[27px] px-2.5">
+					Sign In
+				</Button>
+			</a>
+			<a href="/auth/sign-up">
+				<Button size="sm" scale="sm" class="rounded-full h-[27px] px-2.5">Sign Up</Button>
+			</a>
+		{/if}
 		<a href="https://go.typyst.md/github" target="_blank" rel="noopener noreferrer">
 			<Button variant="secondary" size="sm" scale="sm" class="rounded-full h-[27px] px-2.5"
 				>Star on Github</Button

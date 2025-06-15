@@ -14,6 +14,10 @@
 	import '@typyst/ui/app.web.css';
 	import { ModeWatcher } from 'mode-watcher';
 	import { onMount } from 'svelte';
+	import { authState, authClient } from '$lib/auth-client';
+	import type { LayoutData } from './$types';
+
+	export let data: LayoutData;
 
 	// Device detector
 	const device = createDeviceDetector();
@@ -45,6 +49,19 @@
 	}
 
 	onMount(async () => {
+		// Initialize auth state with server data
+		if (data.session) {
+			authState.set({
+				user: data.user,
+				session: data.session,
+				isLoading: false,
+				error: null
+			});
+		} else {
+			// Try to refresh session if no server session
+			await authClient.refreshSession();
+		}
+
 		// Migrate database
 		await migrateDatabase();
 
