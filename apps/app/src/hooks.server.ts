@@ -25,7 +25,7 @@ export const handle: Handle = async ({ event, resolve }) => {
 	}
 
 	// Set session in locals for use in load functions
-	event.locals.session = session;
+	event.locals.session = session as typeof event.locals.session; // eslint-disable-line @typescript-eslint/no-explicit-any -- Type assertion needed for Better Auth session compatibility
 	event.locals.user = session?.user || null;
 
 	// Check if current route is protected

@@ -52,8 +52,8 @@
 		// Initialize auth state with server data
 		if (data.session) {
 			authState.set({
-				user: data.user,
-				session: data.session,
+				user: data.user as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type assertion needed for Better Auth compatibility
+				session: data.session as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type assertion needed for Better Auth compatibility
 				isLoading: false,
 				error: null
 			});

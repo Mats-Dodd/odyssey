@@ -3,6 +3,7 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	let isSigningOut = true;
 
 	onMount(async () => {

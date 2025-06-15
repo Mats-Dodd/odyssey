@@ -4,11 +4,12 @@ import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './database/schema';
 
-// Get environment variables
+// Get environment variables with fallbacks for development
 const connectionString = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
 const authSecret = process.env.BETTER_AUTH_SECRET;
 const baseURL = process.env.BETTER_AUTH_URL || 'http://localhost:5173';
 
+// Validate required environment variables
 if (!connectionString) {
 	throw new Error('DATABASE_URL or SUPABASE_DATABASE_URL environment variable is required');
 }
@@ -31,18 +32,16 @@ const authDb = drizzle(sql, {
 
 // Create auth server instance using @typyst/auth with Drizzle adapter
 const authServer = createAuthServer({
-	database: {
-		adapter: drizzleAdapter(authDb, {
-			provider: 'pg',
-			schema: {
-				// Map Better Auth tables explicitly
-				user: schema.user,
-				session: schema.session,
-				account: schema.account,
-				verification: schema.verification
-			}
-		})
-	},
+	database: drizzleAdapter(authDb, {
+		provider: 'pg',
+		schema: {
+			// Map Better Auth tables explicitly
+			user: schema.user,
+			session: schema.session,
+			account: schema.account,
+			verification: schema.verification
+		}
+	}) as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type assertion needed for Better Auth adapter compatibility
 	secret: authSecret,
 	baseURL,
 	session: {

@@ -13,6 +13,14 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+
+	// Extend HTMLInputElement to include webkitdirectory
+	namespace svelteHTML {
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+		interface HTMLAttributes<T = any> {
+			webkitdirectory?: boolean;
+		}
+	}
 }
 
 export {};
