@@ -10,13 +10,11 @@
 3. Use Drizzle ORM v0.26.1 to define schema for user-scoped collections and entries tables
 4. Implement schema filtering to avoid managing auth tables
 5. Set up database migrations using Drizzle Kit v0.19.2
-6. Configure environment variables for Supabase connection
-7. Implement proper indexing for performance optimization
+
 
 # Test Strategy:
 1. Verify Supabase project creation and configuration
 2. Test Better Auth schema integration
 3. Validate Drizzle ORM schema definitions
 4. Run and verify database migrations
-5. Test environment variable configuration
-6. Perform query performance tests with indexes
+
