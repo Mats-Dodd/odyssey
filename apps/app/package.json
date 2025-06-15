@@ -59,6 +59,7 @@
 		"@tiptap/extension-typography": "^2.2.2",
 		"@tiptap/pm": "^2.2.1",
 		"@tiptap/starter-kit": "^2.2.1",
+		"@typyst/auth": "workspace:^",
 		"@typyst/ui": "workspace:^",
 		"better-auth": "^1.0.0",
 		"bits-ui": "^0.15.1",

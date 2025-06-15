@@ -1,14 +1,20 @@
-import { betterAuth } from 'better-auth';
+import { createAuthServer } from '@typyst/auth/server';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { drizzle } from 'drizzle-orm/postgres-js';
 import postgres from 'postgres';
 import * as schema from './database/schema';
 
-// Create Supabase connection for Better Auth
+// Get environment variables
 const connectionString = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
+const authSecret = process.env.BETTER_AUTH_SECRET;
+const baseURL = process.env.BETTER_AUTH_URL || 'http://localhost:5173';
 
 if (!connectionString) {
 	throw new Error('DATABASE_URL or SUPABASE_DATABASE_URL environment variable is required');
+}
+
+if (!authSecret) {
+	throw new Error('BETTER_AUTH_SECRET environment variable is required');
 }
 
 // Create a separate connection for Better Auth (server-side only)
@@ -23,33 +29,34 @@ const authDb = drizzle(sql, {
 	}
 });
 
-export const auth = betterAuth({
-	database: drizzleAdapter(authDb, {
-		provider: 'pg',
-		schema: {
-			// Map Better Auth tables explicitly
-			user: schema.user,
-			session: schema.session,
-			account: schema.account,
-			verification: schema.verification
-		}
-	}),
-	emailAndPassword: {
-		enabled: true,
-		requireEmailVerification: true
+// Create auth server instance using @typyst/auth with Drizzle adapter
+const authServer = createAuthServer({
+	database: {
+		adapter: drizzleAdapter(authDb, {
+			provider: 'pg',
+			schema: {
+				// Map Better Auth tables explicitly
+				user: schema.user,
+				session: schema.session,
+				account: schema.account,
+				verification: schema.verification
+			}
+		})
 	},
+	secret: authSecret,
+	baseURL,
 	session: {
 		expiresIn: 60 * 60 * 24 * 7, // 7 days
 		updateAge: 60 * 60 * 24 // 1 day
-	},
-	advanced: {
-		generateId: () => crypto.randomUUID()
-	},
-	// Configure base URL for production
-	baseURL: process.env.BETTER_AUTH_URL || 'http://localhost:5173',
-	// Secret for signing tokens
-	secret: process.env.BETTER_AUTH_SECRET || 'your-secret-key-change-in-production'
+	}
 });
 
+// Export the auth instance for use in API routes
+export const auth = authServer.auth;
+
+// Export the server methods for use in server-side code
+export const { signUp, signIn, signOut, getSession, verifySession, requireAuth } = authServer;
+
+// Export types
 export type Session = typeof auth.$Infer.Session;
 export type User = typeof auth.$Infer.Session.user;

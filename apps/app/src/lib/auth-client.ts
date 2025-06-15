@@ -1,7 +1,11 @@
-import { createAuthClient } from 'better-auth/svelte';
+import { createAuthClientInstance } from '@typyst/auth/client';
 
-export const authClient = createAuthClient({
-	baseURL: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173'
+export const authClient = createAuthClientInstance({
+	baseURL: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173',
+	basePath: '/api/auth'
 });
 
-export const { signIn, signUp, signOut, useSession, getSession } = authClient;
+export const { signIn, signUp, signOut, getSession, stores } = authClient;
+
+// Export individual stores for easier access
+export const { authState, user, session, isAuthenticated, isLoading, authError } = stores;

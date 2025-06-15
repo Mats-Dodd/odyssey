@@ -1,11 +1,15 @@
-import { betterAuth } from 'better-auth';
+import { betterAuth, type Adapter } from 'better-auth';
 import type { AuthUser, AuthSession } from './types.js';
 
 export interface AuthServerConfig {
-  database: {
-    provider: 'sqlite' | 'postgres' | 'mysql';
-    url: string;
-  };
+  database:
+    | {
+        provider: 'sqlite' | 'postgres' | 'mysql';
+        url: string;
+      }
+    | {
+        adapter: Adapter;
+      };
   secret: string;
   baseURL: string;
   trustedOrigins?: string[];
@@ -17,7 +21,7 @@ export interface AuthServerConfig {
 
 export function createAuthServer(config: AuthServerConfig) {
   const auth = betterAuth({
-    database: config.database,
+    database: 'adapter' in config.database ? config.database.adapter : config.database,
     secret: config.secret,
     baseURL: config.baseURL,
     trustedOrigins: config.trustedOrigins,
