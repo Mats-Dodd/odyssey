@@ -1,8 +1,5 @@
 import { createAuthServer } from '@typyst/auth/server';
-import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import * as schema from './database/schema';
+import { createSupabaseDatabase } from '@typyst/db/supabase';
 
 // Get environment variables with fallbacks for development
 const connectionString = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
@@ -18,30 +15,17 @@ if (!authSecret) {
 	throw new Error('BETTER_AUTH_SECRET environment variable is required');
 }
 
-// Create a separate connection for Better Auth (server-side only)
-const sql = postgres(connectionString);
-const authDb = drizzle(sql, {
-	schema: {
-		// Only include Better Auth tables in the auth database instance
-		user: schema.user,
-		session: schema.session,
-		account: schema.account,
-		verification: schema.verification
-	}
+// Create Supabase database connection for Better Auth
+const supabaseDb = createSupabaseDatabase({
+	connectionString,
+	maxConnections: 10
 });
 
-// Create auth server instance using @typyst/auth with Drizzle adapter
+// Create auth server instance using @typyst/auth with the pre-configured adapter
 const authServer = createAuthServer({
-	database: drizzleAdapter(authDb, {
-		provider: 'pg',
-		schema: {
-			// Map Better Auth tables explicitly
-			user: schema.user,
-			session: schema.session,
-			account: schema.account,
-			verification: schema.verification
-		}
-	}) as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type assertion needed for Better Auth adapter compatibility
+	database: {
+		adapter: supabaseDb.adapter({} as Record<string, unknown>)
+	} as Parameters<typeof createAuthServer>[0]['database'],
 	secret: authSecret,
 	baseURL,
 	session: {

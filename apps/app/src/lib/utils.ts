@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { entry as entryTable } from '@/database/schema';
+import { entry as entryTable } from '@typyst/db/schema/app';
 import { EditorState } from '@tiptap/pm/state';
 import { clsx, type ClassValue } from 'clsx';
 import { setMode, userPrefersMode } from 'mode-watcher';
@@ -7,7 +7,7 @@ import { cubicOut } from 'svelte/easing';
 import { get, readable } from 'svelte/store';
 import type { TransitionConfig } from 'svelte/transition';
 import { twMerge } from 'tailwind-merge';
-import { pgClient } from './database/client';
+import { pgClient } from './client';
 import { collection, editor } from './store';
 import type { FileEntry, SearchResultParams, ShortcutParams } from './types';
 

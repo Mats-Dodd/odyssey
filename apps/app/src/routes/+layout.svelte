@@ -1,14 +1,15 @@
 <script lang="ts">
-	import migrations from '$lib/database/migrations/migrations.sql?raw';
-	import seed from '$lib/database/migrations/seed.sql?raw';
+	// TODO: Update to use migrations from @typyst/db package
+	// import migrations from '$lib/database/migrations/migrations.sql?raw';
+	// import seed from '$lib/database/migrations/seed.sql?raw';
 	import { loadSettings } from '@/api/settings';
 	import Footer from '@/components/layout/footer.svelte';
 	import Header from '@/components/layout/header.svelte';
 	import Sidebar from '@/components/layout/sidebar.svelte';
 	import Command from '@/components/shared/command-menu/command.svelte';
 	import Icon from '@/components/shared/icon.svelte';
-	import { db, pgClient } from '@/database/client';
-	import { collection as collectionTable } from '@/database/schema';
+	import { db } from '@/client';
+	import { collection as collectionTable, type Collection } from '@typyst/db/schema/app';
 	import { collection } from '@/store';
 	import { createDeviceDetector } from '@/utils';
 	import '@typyst/ui/app.web.css';
@@ -24,11 +25,10 @@
 
 	// Migrate database
 	async function migrateDatabase() {
+		// TODO: Update to use migrations from @typyst/db package
 		try {
-			await pgClient.exec(migrations);
-
-			// Seed database
-			await pgClient.exec(seed);
+			// await pgClient.exec(migrations);
+			// await pgClient.exec(seed);
 		} catch (error) {
 			console.log('Table already exists');
 		}
@@ -41,7 +41,7 @@
 		if (!collections || collections.length === 0) return;
 
 		// Get collection with latest lastOpened date
-		const latestCollection = collections.reduce((prev, current) =>
+		const latestCollection = collections.reduce((prev: Collection, current: Collection) =>
 			prev.lastOpened > current.lastOpened ? prev : current
 		);
 

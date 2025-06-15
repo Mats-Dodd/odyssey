@@ -1,0 +1,40 @@
+{
+  "name": "@typyst/db",
+  "version": "1.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./supabase": "./src/client/supabase-db.ts",
+    "./pglite": "./src/client/pglite-db.ts",
+    "./schema": "./src/schema/index.ts",
+    "./schema/auth": "./src/schema/auth.ts",
+    "./schema/app": "./src/schema/app.ts"
+  },
+  "typesVersions": {
+    "*": {
+      "supabase": ["./src/client/supabase-db.ts"],
+      "pglite": ["./src/client/pglite-db.ts"],
+      "schema": ["./src/schema/index.ts"],
+      "schema/auth": ["./src/schema/auth.ts"],
+      "schema/app": ["./src/schema/app.ts"]
+    }
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.33.0",
+    "@electric-sql/pglite": "^0.2.0",
+    "postgres": "^3.4.7",
+    "better-auth": "^1.0.0"
+  },
+  "devDependencies": {
+    "drizzle-kit": "^0.24.0",
+    "typescript": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@typyst/eslint-config": "workspace:*"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate", 
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio"
+  }
+} 

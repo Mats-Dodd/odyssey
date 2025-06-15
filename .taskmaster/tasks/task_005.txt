@@ -1,7 +1,7 @@
 # Task ID: 5
 # Title: Design and Implement API Routes
 # Status: pending
-# Dependencies: 3, 4
+# Dependencies: 30, 4
 # Priority: high
 # Description: Create SvelteKit API routes for authentication and data operations.
 # Details:

@@ -1,5 +1,5 @@
-import { db } from '@/database/client';
-import { collection as collectionTable, entry as entryTable } from '@/database/schema';
+import { db } from '../client';
+import { collection as collectionTable, entry as entryTable } from '@typyst/db/schema/app';
 import { activeFile, collection, collectionEntries, noteHistory } from '@/store';
 import type { FileEntry } from '@/types';
 import { buildFileTree, sortFileEntry } from '@/utils';
