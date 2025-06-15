@@ -1,0 +1,51 @@
+{
+	"version": 3,
+	"routes": [
+		{
+			"src": "/_app/immutable/.+",
+			"headers": {
+				"cache-control": "public, immutable, max-age=31536000"
+			}
+		},
+		{
+			"handle": "filesystem"
+		},
+		{
+			"src": "^/?(?:/__data.json)?$",
+			"dest": "/"
+		},
+		{
+			"src": "^/api/auth(/.*)?/?(?:/__data.json)?$",
+			"dest": "/api/auth/[...all]"
+		},
+		{
+			"src": "^/auth/sign-in/?(?:/__data.json)?$",
+			"dest": "/auth/sign-in"
+		},
+		{
+			"src": "^/auth/sign-out/?(?:/__data.json)?$",
+			"dest": "/auth/sign-out"
+		},
+		{
+			"src": "^/auth/sign-up/?(?:/__data.json)?$",
+			"dest": "/auth/sign-up"
+		},
+		{
+			"src": "^/daily/?(?:/__data.json)?$",
+			"dest": "/daily"
+		},
+		{
+			"src": "^/notes/?(?:/__data.json)?$",
+			"dest": "/notes"
+		},
+		{
+			"src": "^/tasks/?(?:/__data.json)?$",
+			"dest": "/tasks"
+		},
+		{
+			"src": "/.*",
+			"dest": "/![-]/catchall"
+		}
+	],
+	"overrides": {}
+}

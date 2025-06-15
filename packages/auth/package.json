@@ -29,6 +29,7 @@
 		"type-check": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@typyst/db": "workspace:*",
 		"better-auth": "^1.0.0",
 		"nanostores": "^0.10.0"
 	},

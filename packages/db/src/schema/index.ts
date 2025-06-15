@@ -1,9 +1,9 @@
 // Re-export all schemas and types
-export * from './auth';
-export * from './app';
+export * from './auth.js';
+export * from './app.js';
 
-import { authSchema } from './auth';
-import { appSchema } from './app';
+import { authSchema } from './auth.js';
+import { appSchema } from './app.js';
 
 // Combined schema for use in database clients
 export const schema = {

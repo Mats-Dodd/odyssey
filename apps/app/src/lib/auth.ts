@@ -1,31 +1,18 @@
 import { createAuthServer } from '@typyst/auth/server';
-import { createSupabaseDatabase } from '@typyst/db/supabase';
+import { authDb } from './database.js';
 
 // Get environment variables with fallbacks for development
-const connectionString = process.env.DATABASE_URL || process.env.SUPABASE_DATABASE_URL;
 const authSecret = process.env.BETTER_AUTH_SECRET;
 const baseURL = process.env.BETTER_AUTH_URL || 'http://localhost:5173';
 
 // Validate required environment variables
-if (!connectionString) {
-	throw new Error('DATABASE_URL or SUPABASE_DATABASE_URL environment variable is required');
-}
-
 if (!authSecret) {
 	throw new Error('BETTER_AUTH_SECRET environment variable is required');
 }
 
-// Create Supabase database connection for Better Auth
-const supabaseDb = createSupabaseDatabase({
-	connectionString,
-	maxConnections: 10
-});
-
-// Create auth server instance using @typyst/auth with the pre-configured adapter
+// Create auth server instance using @typyst/auth with the database instance
 const authServer = createAuthServer({
-	database: {
-		adapter: supabaseDb.adapter({} as Record<string, unknown>)
-	} as Parameters<typeof createAuthServer>[0]['database'],
+	database: authDb,
 	secret: authSecret,
 	baseURL,
 	session: {

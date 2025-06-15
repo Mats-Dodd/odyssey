@@ -5,7 +5,7 @@ export const authClient = createAuthClientInstance({
 	basePath: '/api/auth'
 });
 
-export const { signIn, signUp, signOut, getSession, stores } = authClient;
+export const { signIn, signUp, signOut, getSession, refreshSession, stores } = authClient;
 
 // Export individual stores for easier access
 export const { authState, user, session, isAuthenticated, isLoading, authError } = stores;

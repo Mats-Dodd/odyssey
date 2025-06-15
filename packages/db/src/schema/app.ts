@@ -1,5 +1,5 @@
 import { pgTable, text, timestamp, boolean, bigint, jsonb } from 'drizzle-orm/pg-core';
-import { user } from './auth';
+import { user } from './auth.js';
 
 export const collection = pgTable('collection', {
   path: text('path').primaryKey(),

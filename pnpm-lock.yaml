@@ -431,6 +431,9 @@ importers:
 
   packages/auth:
     dependencies:
+      '@typyst/db':
+        specifier: workspace:*
+        version: link:../db
       better-auth:
         specifier: ^1.0.0
         version: 1.2.9
