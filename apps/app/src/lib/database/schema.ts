@@ -1,4 +1,4 @@
-import { bigint, boolean, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { bigint, boolean, jsonb, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
 
 // Better Auth tables - these will be managed by Better Auth
 export const user = pgTable('user', {
@@ -56,9 +56,7 @@ export const collection = pgTable('collection', {
 	path: text('path').primaryKey(),
 	name: text('name').notNull(),
 	lastOpened: timestamp('last_opened', { withTimezone: true }).notNull(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' })
+	userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }) // Made optional for now
 });
 
 export const collectionSettings = pgTable('collection_settings', {
@@ -67,9 +65,7 @@ export const collectionSettings = pgTable('collection_settings', {
 		.references(() => collection.path),
 	editor: jsonb('editor').notNull(),
 	notes: jsonb('notes').notNull(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' })
+	userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }) // Made optional for now
 });
 
 export const entry = pgTable('entry', {
@@ -82,9 +78,7 @@ export const entry = pgTable('entry', {
 	size: bigint('size', { mode: 'number' }),
 	createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 	updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-	userId: text('user_id')
-		.notNull()
-		.references(() => user.id, { onDelete: 'cascade' })
+	userId: text('user_id').references(() => user.id, { onDelete: 'cascade' }) // Made optional for now
 });
 
 // Export types for TypeScript
