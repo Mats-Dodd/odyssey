@@ -1,0 +1,22 @@
+# Task ID: 7
+# Title: Implement Supabase Sync Schema
+# Status: pending
+# Dependencies: 3, 6
+# Priority: high
+# Description: Create and configure Supabase tables for storing Loro CRDT data and sync history.
+# Details:
+1. Create a user sync documents table in Supabase for Loro data storage
+2. Implement a sync history table for debugging and recovery
+3. Add version vectors for conflict detection
+4. Set up proper indexing for optimal query performance
+5. Use Drizzle ORM v0.26.1 for schema management
+6. Implement database migrations for the new tables
+7. Ensure proper data scoping by user ID
+
+# Test Strategy:
+1. Verify table creation in Supabase
+2. Test data insertion and retrieval from sync tables
+3. Validate version vector functionality
+4. Perform query performance tests with indexes
+5. Test database migrations
+6. Verify user data isolation

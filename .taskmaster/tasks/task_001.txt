@@ -1,0 +1,23 @@
+# Task ID: 1
+# Title: Setup Project Repository and Environment
+# Status: done
+# Dependencies: None
+# Priority: high
+# Description: Initialize the project repository with the required structure for web and desktop apps, including shared packages.
+# Details:
+1. Create a new Git repository
+2. Set up pnpm workspaces for monorepo structure
+3. Initialize apps/app (web), apps/desktop (Tauri), and packages/auth
+4. Configure TypeScript for full type safety
+5. Set up Vite for SvelteKit in both web and desktop apps
+6. Install and configure Drizzle ORM v0.26.1
+7. Set up environment variable management using dotenv v16.1.4
+8. Create README.md with project overview and setup instructions
+
+# Test Strategy:
+1. Verify correct folder structure
+2. Ensure pnpm workspaces are properly configured
+3. Test TypeScript compilation
+4. Verify Vite builds for both web and desktop apps
+5. Confirm Drizzle ORM installation and basic functionality
+6. Test environment variable loading

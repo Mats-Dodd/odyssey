@@ -1,0 +1,318 @@
+# Typyst Authentication & Sync Implementation PRD
+## Product Requirements Document
+
+### Executive Summary
+
+Implement cloud-authenticated, locally-bootstrapped authentication with real-time cross-platform sync for Typyst, a local-first markdown note-taking ecosystem. The solution combines Better Auth + Supabase for authentication with Loro CRDTs for conflict-free data synchronization between web and desktop platforms.
+
+### Project Overview
+
+**Project Name**: Typyst Authentication & Sync System
+**Timeline**: 6-8 weeks
+**Platforms**: Web App (SvelteKit + PGLite) and Desktop App (SvelteKit + Tauri)
+
+### Key Technologies
+- **Better Auth v1.0+**: Server-side authentication with email/password support
+- **Supabase**: Managed PostgreSQL database for user data and auth storage
+- **Loro CRDT v1.5.0+**: Conflict-free replicated data types with tree structures
+- **PGLite Bootstrap**: Local database populated with user data after authentication
+- **Drizzle ORM**: Shared schema management between Supabase and PGLite
+- **TipTap + loro-prosemirror**: Rich text editing with CRDT integration
+
+### Architecture Goals
+- **Cloud-authenticated**: Secure server-side validation and session management
+- **Locally-bootstrapped**: All user data synced to PGLite after successful auth
+- **Real-time sync**: Seamless synchronization across platforms with automatic conflict resolution
+- **Snappy performance**: Local-first operations after initial bootstrap
+- **Unified data model**: Collections as Loro trees, documents as Loro text
+- **Hybrid storage**: Desktop filesystem + database sync, Web PGLite + API sync
+
+### Current State Analysis
+
+#### Web App (apps/app)
+- Framework: SvelteKit with Vite
+- Database: PGLite (browser-based PostgreSQL)
+- Current Auth: None implemented
+- Storage: IndexedDB via PGLite
+- Dependencies: Drizzle ORM already available
+
+#### Desktop App (apps/desktop)
+- Framework: SvelteKit + Tauri
+- Storage: Local filesystem
+- Current Auth: None implemented
+- Platform: Cross-platform native app
+- Dependencies: Tauri plugins for native functionality
+
+#### Shared Infrastructure
+- UI Library: @typyst/ui (shared components)
+- Monorepo: pnpm workspaces
+- TypeScript: Full type safety across apps
+
+### Core Requirements
+
+#### Phase 1: Authentication Foundation (2-3 weeks)
+
+**R1.1 - Shared Authentication Package**
+- Create @typyst/auth package with Better Auth integration
+- Server-side authentication with email/password support
+- Client-side auth client with session management
+- Svelte stores for auth state management
+- Bootstrap service for local database population
+
+**R1.2 - Database Schema & Environment Setup**
+- Supabase project setup with Better Auth schema
+- Drizzle schema filtering to avoid managing auth tables
+- User-scoped collections and entries tables
+- Environment variables configuration
+- Database migrations setup
+
+**R1.3 - Authentication Flow Implementation**
+- User sign up/sign in with email/password
+- Session persistence and validation
+- Local database bootstrap after successful authentication
+- Error handling and loading states
+- Sign out with local data cleanup
+
+**R1.4 - API Design & Implementation**
+- SvelteKit API routes for Better Auth
+- Bootstrap API endpoint for user data fetching
+- Authentication middleware for protected routes
+- Session validation and refresh logic
+
+#### Phase 2: CRDT Integration & Sync Foundation (2-3 weeks)
+
+**R2.1 - Unified Data Model with Loro CRDT**
+- Collections as Loro trees with documents as children
+- Hybrid document IDs combining filesystem paths and UUIDs
+- Document content as Loro text for rich text editing
+- Collection metadata management with Loro maps
+- User sync document containing all collections
+
+**R2.2 - Supabase Sync Schema**
+- User sync documents table for Loro data storage
+- Sync history table for debugging and recovery
+- Version vectors for conflict detection
+- Proper indexing for performance
+
+**R2.3 - CRDT Collection Management**
+- Collection creation and management via Loro trees
+- Document addition, editing, and organization
+- Tree operations (move, rename, delete)
+- Automatic conflict resolution via Loro CRDT
+- Real-time collaborative editing support
+
+**R2.4 - Storage Adapters**
+- Desktop filesystem integration maintaining file structure
+- Web PGLite integration for browser storage
+- Bidirectional sync between Loro state and local storage
+- Collection metadata persistence
+
+#### Phase 3: Real-Time Sync Implementation (2-3 weeks)
+
+**R3.1 - Sync Manager Architecture**
+- Real-time sync manager with device identification
+- Polling-based sync with 2-second intervals
+- Local update handling and queuing
+- Push/pull operations with Supabase API
+- Exponential backoff for failed sync attempts
+
+**R3.2 - API Endpoints for Sync**
+- Push updates endpoint for local changes
+- Pull updates endpoint for remote changes
+- User sync document initialization
+- Sync history tracking and retrieval
+- Authentication validation for all sync operations
+
+**R3.3 - Cross-Platform Sync Logic**
+- Desktop filesystem to Loro state synchronization
+- Web PGLite to Loro state synchronization
+- Automatic merge conflict resolution
+- Incremental updates and efficient data transfer
+- Network failure handling and recovery
+
+**R3.4 - Performance Optimization**
+- Debounced local updates to reduce sync frequency
+- Efficient serialization of Loro documents
+- Memory management for large collections
+- Background sync without blocking UI
+- Selective sync for large datasets
+
+#### Phase 4: UI Integration & Polish (1-2 weeks)
+
+**R4.1 - Authentication UI Components**
+- Sign in/sign up forms with validation
+- Loading states during authentication and bootstrap
+- Error handling and user feedback
+- Password strength requirements
+- Session management UI
+
+**R4.2 - Sync Status & Indicators**
+- Real-time sync status indicators
+- Conflict resolution notifications
+- Network connectivity status
+- Sync progress for large operations
+- Offline mode indicators
+
+**R4.3 - App Layout Integration**
+- Protected route handling
+- Authentication state management in layouts
+- Bootstrap progress UI with user feedback
+- Seamless transition from auth to app
+- User profile and settings integration
+
+**R4.4 - Error Handling & Recovery**
+- Graceful handling of network failures
+- Sync conflict resolution UI
+- Data recovery mechanisms
+- User-friendly error messages
+- Retry mechanisms for failed operations
+
+### Technical Specifications
+
+#### Authentication Architecture
+```
+User Sign In → Server Auth → Bootstrap Local DB → Local-First Operations
+     ↓              ↓              ↓                    ↓
+Better Auth → Supabase Validation → Fetch User Data → PGLite Operations
+```
+
+#### Sync Architecture
+```
+Local Changes → Loro CRDT → Sync Manager → Supabase API → Remote Storage
+     ↓              ↓           ↓              ↓              ↓
+File System → Tree Structure → Push/Pull → REST API → PostgreSQL
+```
+
+#### Data Flow
+- Desktop: Local filesystem → Tauri APIs → Loro CRDT → Supabase sync
+- Web: PGLite (browser DB) → Loro CRDT → Supabase sync
+- Sync: Loro state merging with automatic conflict resolution
+
+### Security Requirements
+
+**S1 - Authentication Security**
+- Minimum 8-character passwords with strength validation
+- HTTP-only cookies for session tokens
+- Secure flag in production environments
+- Rate limiting on authentication endpoints
+- Account lockout after failed attempts
+
+**S2 - Data Security**
+- Server-side validation of user access
+- Data scoping by user ID in all operations
+- Secure API endpoints with proper auth checks
+- Input validation and sanitization
+- No sensitive data in bootstrap payload
+
+**S3 - Session Security**
+- Automatic session refresh
+- Session invalidation on sign out
+- SameSite cookie attributes
+- Secure environment variable storage
+- Regular secret rotation
+
+### Performance Requirements
+
+**P1 - Authentication Performance**
+- Sign in/up response time < 2 seconds
+- Bootstrap completion < 10 seconds for typical datasets
+- Local session validation < 100ms
+- Seamless offline-to-online transition
+
+**P2 - Sync Performance**
+- Real-time sync latency < 3 seconds
+- Conflict resolution < 1 second
+- Large collection sync < 30 seconds
+- Memory usage < 100MB for typical workloads
+
+**P3 - Storage Performance**
+- Local database operations < 50ms
+- Filesystem operations < 100ms
+- Efficient incremental updates
+- Minimal storage overhead
+
+### Testing Requirements
+
+**T1 - Authentication Testing**
+- Unit tests for auth stores and services
+- Integration tests for sign up/in flows
+- E2E tests for complete authentication journey
+- Security testing for common vulnerabilities
+
+**T2 - Sync Testing**
+- Cross-platform sync scenarios
+- Conflict resolution testing with simultaneous edits
+- Network failure and recovery testing
+- Large dataset performance testing
+
+**T3 - Platform Testing**
+- Desktop app testing across Windows, macOS, Linux
+- Web app testing across major browsers
+- Mobile responsiveness testing
+- Offline functionality testing
+
+### Success Criteria
+
+**Primary Success Metrics**
+- Users can successfully sign up and sign in on both platforms
+- Local database bootstrap completes successfully after authentication
+- Real-time sync works seamlessly between web and desktop
+- Conflict resolution handles simultaneous edits automatically
+- Performance meets specified requirements
+
+**Secondary Success Metrics**
+- Zero data loss during sync operations
+- Graceful handling of network interruptions
+- Intuitive user experience for authentication and sync
+- Scalable architecture for future enhancements
+- Comprehensive test coverage > 80%
+
+### Future Enhancements (Post-MVP)
+
+**Social Authentication**
+- GitHub, Google OAuth integration
+- Profile picture and social data sync
+
+**Advanced Sync Features**
+- WebSocket-based real-time updates
+- Operational transforms for complex conflicts
+- Selective sync for large collections
+
+**Collaboration Features**
+- Real-time collaborative editing
+- User presence indicators
+- Comment and annotation system
+
+### Dependencies & Constraints
+
+**External Dependencies**
+- Supabase service availability
+- Better Auth library stability
+- Loro CRDT library maturity
+- Network connectivity for sync
+
+**Technical Constraints**
+- Browser storage limitations for web app
+- Filesystem permissions for desktop app
+- Network bandwidth for large syncs
+- Memory constraints for large collections
+
+**Timeline Constraints**
+- 6-8 week development window
+- Phased rollout approach
+- Backward compatibility requirements
+- Testing and QA requirements
+
+### Risk Mitigation
+
+**Technical Risks**
+- CRDT library bugs: Comprehensive testing and fallback mechanisms
+- Sync conflicts: Robust conflict resolution and user feedback
+- Performance issues: Profiling and optimization throughout development
+- Data corruption: Backup and recovery mechanisms
+
+**Business Risks**
+- User adoption: Intuitive UX and clear value proposition
+- Scalability: Efficient architecture and performance monitoring
+- Security vulnerabilities: Regular security audits and updates
+- Vendor dependencies: Contingency plans for service disruptions 

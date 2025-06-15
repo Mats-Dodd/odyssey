@@ -1,0 +1,23 @@
+# Task ID: 6
+# Title: Integrate Loro CRDT for Data Model
+# Status: pending
+# Dependencies: 3, 5, 27
+# Priority: high
+# Description: Implement a unified data model using Loro CRDT for collections and documents.
+# Details:
+1. Install Loro CRDT v1.5.0
+2. Implement collections as Loro trees
+3. Create documents as children of collection trees
+4. Develop hybrid document IDs combining filesystem paths and UUIDs
+5. Implement document content as Loro text for rich text editing
+6. Create collection metadata management using Loro maps
+7. Develop a user sync document containing all collections
+8. Integrate with TipTap v2.0.3 and loro-prosemirror for rich text editing
+
+# Test Strategy:
+1. Unit test Loro CRDT operations for collections and documents
+2. Verify tree structure for collections and documents
+3. Test hybrid ID generation and uniqueness
+4. Validate rich text editing with Loro text
+5. Test collection metadata management
+6. Verify user sync document creation and updates
