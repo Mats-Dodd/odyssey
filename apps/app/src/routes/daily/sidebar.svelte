@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fetchCollectionEntries } from '@/api/collection';
 	import { createNote, openNote } from '@/api/notes';
-	import { pgClient } from '@/database/client';
+	import { pgClient } from '@/client';
 	import {
 		activeFile,
 		collection,

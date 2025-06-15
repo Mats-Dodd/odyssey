@@ -6,7 +6,7 @@
 	import Shortcut from '@/components/shared/shortcut.svelte';
 	import Tooltip from '@/components/shared/tooltip.svelte';
 	import { SHORTCUTS } from '@/constants';
-	import { pgClient } from '@/database/client';
+	import { pgClient } from '@/client';
 	import {
 		activeFile,
 		collection,

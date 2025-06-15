@@ -1,5 +1,5 @@
-import { db } from '@/database/client';
-import { collectionSettings as collectionSettingsTable } from '@/database/schema';
+import { db } from '../client';
+import { collectionSettings as collectionSettingsTable } from '@typyst/db/schema/app';
 import { appSettings, collection, collectionSettings } from '@/store';
 import type { AppSettingsParams, CollectionSettingsParams } from '@/types';
 import { eq } from 'drizzle-orm';

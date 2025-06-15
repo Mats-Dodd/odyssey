@@ -8,6 +8,13 @@
       "when": 1750011434077,
       "tag": "0000_simple_vivisector",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1750025086638,
+      "tag": "0001_narrow_king_bedlam",
+      "breakpoints": true
     }
   ]
 }

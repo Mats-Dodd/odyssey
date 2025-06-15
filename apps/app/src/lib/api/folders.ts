@@ -1,5 +1,5 @@
-import { db } from '@/database/client';
-import { entry as entryTable } from '@/database/schema';
+import { db } from '../client';
+import { entry as entryTable } from '@typyst/db/schema/app';
 import { collection } from '@/store';
 import { getNextUntitledName } from '@/utils';
 import { and, eq } from 'drizzle-orm';
@@ -47,7 +47,7 @@ export const deleteFolder = async (path: string, recursive = false) => {
 		let children = await db.select().from(entryTable).where(eq(entryTable.parentPath, path));
 
 		// Remove .DS_Store files from the children
-		children = children.filter((child) => child.name !== '.DS_Store');
+		children = children.filter((child: { name: string | null }) => child.name !== '.DS_Store');
 
 		// TODO: implement empty children check
 
@@ -75,7 +75,12 @@ export const moveFolder = async (source: string, target: string) => {
 	// Make sure there are no name conflicts
 	const folderName = source.split('/').pop()!;
 
-	if (targetFiles.some((file) => file.name === folderName && file.isFolder)) {
+	if (
+		targetFiles.some(
+			(file: { name: string | null; isFolder: boolean | null }) =>
+				file.name === folderName && file.isFolder
+		)
+	) {
 		throw new Error('Name conflict');
 	}
 

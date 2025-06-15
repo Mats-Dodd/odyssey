@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import Icon from '$lib/components/shared/icon.svelte';
-	import { db } from '$lib/database/client';
-	import { entry as entryTable } from '$lib/database/schema';
+	import { db } from '$lib/client';
+	import { entry as entryTable } from '@typyst/db/schema/app';
 	import { getCollections, loadCollection } from '@/api/collection';
 	import { moveNote, openNote } from '@/api/notes';
 	import { activeFile, collection } from '@/store';

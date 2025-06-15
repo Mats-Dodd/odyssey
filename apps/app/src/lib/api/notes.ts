@@ -1,5 +1,5 @@
-import { db } from '@/database/client';
-import { entry as entryTable } from '@/database/schema';
+import { db } from '../client';
+import { entry as entryTable, type Entry } from '@typyst/db/schema/app';
 import { activeFile, collection, editor, noteHistory } from '@/store';
 import type { NoteMetadataParams } from '@/types';
 import { calculateReadingTime, getNextUntitledName, setEditorContent } from '@/utils';
@@ -85,7 +85,9 @@ export const renameNote = async (path: string, name: string) => {
 		.where(eq(entryTable.parentPath, entry[0].parentPath!));
 
 	// Make sure there are no name conflicts
-	if (files.some((file) => file.name?.toLowerCase() === name.toLowerCase() && !file.isFolder)) {
+	if (
+		files.some((file: Entry) => file.name?.toLowerCase() === name.toLowerCase() && !file.isFolder)
+	) {
 		throw new Error('Name conflict');
 	}
 
@@ -133,7 +135,7 @@ export const moveNote = async (source: string, target: string) => {
 
 	if (
 		targetFiles.some(
-			(file) => file.name === noteName && !file.isFolder && file.parentPath === target
+			(file: Entry) => file.name === noteName && !file.isFolder && file.parentPath === target
 		)
 	) {
 		throw new Error('Name conflict');
@@ -162,7 +164,9 @@ export const duplicateNote = async (path: string) => {
 		.select()
 		.from(entryTable)
 		.where(eq(entryTable.parentPath, entry[0].parentPath!));
-	const notes = files.filter((file) => file.name?.startsWith(entry[0].name!) && !file.isFolder);
+	const notes = files.filter(
+		(file: Entry) => file.name?.startsWith(entry[0].name!) && !file.isFolder
+	);
 
 	// Write the new note
 	const newName = `${entry[0].name?.replace(`.${ext}`, '')} (${notes.length}).${ext}`;
