@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { defineConfig } from 'drizzle-kit';
 import type { Config } from 'drizzle-kit';
 
@@ -6,7 +7,7 @@ export default defineConfig({
 	out: './src/lib/database/migrations',
 	dialect: 'postgresql',
 	dbCredentials: {
-		url: '' // Will be set via environment variable when running migrations
+		url: process.env.DATABASE_URL!
 	},
 	verbose: true,
 	strict: true
