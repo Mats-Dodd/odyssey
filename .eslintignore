@@ -1,0 +1,24 @@
+# Build outputs
+**/dist/**
+**/build/**
+**/.vercel/**
+**/.next/**
+**/.nuxt/**
+**/.output/**
+**/.sveltekit/**
+
+# Dependencies
+**/node_modules/**
+
+# Generated files
+**/*.min.js
+**/*.bundle.js
+
+# Config files that don't need linting
+**/coverage/**
+**/.turbo/**
+**/.pnpm/**
+
+# Auto-generated
+**/*.d.ts.map
+**/*.js.map 
