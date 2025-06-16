@@ -29,7 +29,7 @@ The current implementation provides a solid foundation but requires these final 
 2. Integrate QueryProvider for reactive auth state and data management
 3. Implement server-side route protection for secure access control
 4. Create comprehensive test coverage for all auth flows
-5. Add advanced auth features for production readiness
+<!-- 5. Add advanced auth features for production readiness -->
 
 ## Phase 1: Environment Update & Compatibility
 

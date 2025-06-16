@@ -32,15 +32,15 @@
 		},
 		{
 			"src": "^/daily/?(?:/__data.json)?$",
-			"dest": "/daily"
+			"dest": "/(protected)/daily"
 		},
 		{
 			"src": "^/notes/?(?:/__data.json)?$",
-			"dest": "/notes"
+			"dest": "/(protected)/notes"
 		},
 		{
 			"src": "^/tasks/?(?:/__data.json)?$",
-			"dest": "/tasks"
+			"dest": "/(protected)/tasks"
 		},
 		{
 			"src": "/.*",
