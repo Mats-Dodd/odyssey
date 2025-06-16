@@ -17,8 +17,8 @@
 	import { onMount } from 'svelte';
 	// Auth state is managed automatically by authClient
 	import { authClient } from '$lib/auth-client';
-	// TODO: Add QueryProvider when Node.js version is updated
-	// import { QueryProvider } from '@typyst/queries';
+	import { QueryProvider } from '@typyst/queries';
+	import { user } from '$lib/auth.svelte';
 	import type { LayoutData } from './$types';
 
 	export let data: LayoutData;
@@ -51,8 +51,11 @@
 		collection.set(latestCollection.path);
 	}
 
-	// TODO: API options for query provider when Node.js version is updated
-	// $: apiOptions = { baseUrl: '/api/rpc' };
+	// API options for query provider with auth headers
+	$: apiOptions = {
+		baseUrl: '/api/rpc'
+		// Note: Authentication will be handled via cookies automatically
+	};
 
 	onMount(async () => {
 		// Initialize auth state using server data if available
@@ -128,14 +131,16 @@
 </svelte:head>
 
 {#if $device.isDesktop}
-	<Command />
-	<ModeWatcher />
-	<Header />
-	<Sidebar />
-	<main class="flex min-h-screen w-full items-center justify-center">
-		<slot />
-	</main>
-	<Footer />
+	<QueryProvider {apiOptions} user={$user}>
+		<Command />
+		<ModeWatcher />
+		<Header />
+		<Sidebar />
+		<main class="flex min-h-screen w-full items-center justify-center">
+			<slot />
+		</main>
+		<Footer />
+	</QueryProvider>
 {:else}
 	<main class="flex min-h-[100dvh] w-full flex-col items-center justify-center gap-5">
 		<Icon name="phoneOff" class="w-9 h-9 fill-none text-secondary-foreground" />
