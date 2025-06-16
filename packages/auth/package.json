@@ -17,6 +17,10 @@
 		"./server": {
 			"types": "./dist/server-entry.d.ts",
 			"import": "./dist/server-entry.js"
+		},
+		"./svelte": {
+			"types": "./dist/svelte.d.ts",
+			"import": "./dist/svelte.js"
 		}
 	},
 	"files": [
