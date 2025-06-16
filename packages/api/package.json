@@ -1,0 +1,45 @@
+{
+  "name": "@typyst/api",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./router": {
+      "types": "./src/router/index.ts",
+      "default": "./src/router/index.ts"
+    },
+    "./types": {
+      "types": "./src/types/index.ts",
+      "default": "./src/types/index.ts"
+    },
+    "./schemas": {
+      "types": "./src/schemas/index.ts",
+      "default": "./src/schemas/index.ts"
+    },
+    "./middleware": {
+      "types": "./src/middleware/index.ts",
+      "default": "./src/middleware/index.ts"
+    }
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@orpc/server": "^1.5.1",
+    "zod": "^3.22.0"
+  },
+  "peerDependencies": {
+    "@typyst/db": "workspace:*",
+    "@typyst/auth": "workspace:*"
+  },
+  "devDependencies": {
+    "@typyst/eslint-config": "workspace:*",
+    "typescript": "^5.0.0"
+  }
+} 
