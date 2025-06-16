@@ -1,4 +1,4 @@
-import { db } from '../client';
+import { authDatabase as db } from '../database';
 import { collection as collectionTable, entry as entryTable } from '@typyst/db/schema/app';
 import { activeFile, collection, collectionEntries, noteHistory } from '@/store';
 import type { FileEntry } from '@/types';
@@ -10,7 +10,8 @@ import { get } from 'svelte/store';
 export const fetchCollectionEntries = async (
 	dirPath?: string,
 	sort: 'name' | 'date' = 'name',
-	showDotfiles = false
+	showDotfiles = false,
+	userId = 'user-123' // TODO: Get from auth context
 ): Promise<FileEntry[]> => {
 	dirPath = dirPath || get(collection);
 	if (!dirPath) throw new Error('No directory path provided');
@@ -19,7 +20,10 @@ export const fetchCollectionEntries = async (
 	const collectionObj = await db
 		.select()
 		.from(collectionTable)
-		.where(eq(collectionTable.path, get(collection)));
+		.where(and(
+			eq(collectionTable.path, get(collection)),
+			eq(collectionTable.userId, userId)
+		));
 
 	if (collectionObj.length === 0) throw new Error('Collection not found');
 
@@ -30,6 +34,7 @@ export const fetchCollectionEntries = async (
 		.where(
 			and(
 				eq(entryTable.collectionPath, get(collection)),
+				eq(entryTable.userId, userId),
 				dirPath !== get(collection) ? eq(entryTable.parentPath, dirPath) : undefined
 			)
 		);
@@ -76,7 +81,7 @@ export const fetchCollectionEntries = async (
 	return showDotfiles ? fileEntries : filterDotfiles(fileEntries);
 };
 
-export const loadCollection = async (path?: string | undefined) => {
+export const loadCollection = async (path?: string | undefined, userId = 'user-123') => {
 	// Return if no path is provided
 	if (!path) return;
 
@@ -91,18 +96,28 @@ export const loadCollection = async (path?: string | undefined) => {
 	const collectionObj = {
 		path: path,
 		name: path.split('/').pop()!,
-		lastOpened: new Date()
+		lastOpened: new Date(),
+		userId
 	};
 
 	// Check if collection already exists
-	const collections = await db.select().from(collectionTable).where(eq(collectionTable.path, path));
+	const collections = await db
+		.select()
+		.from(collectionTable)
+		.where(and(
+			eq(collectionTable.path, path),
+			eq(collectionTable.userId, userId)
+		));
 
 	if (collections && collections.length > 0) {
 		// Update collection
 		await db
 			.update(collectionTable)
 			.set({ lastOpened: new Date() })
-			.where(eq(collectionTable.path, path));
+			.where(and(
+				eq(collectionTable.path, path),
+				eq(collectionTable.userId, userId)
+			));
 	} else {
 		// Insert collection
 		await db.insert(collectionTable).values(collectionObj);
@@ -110,8 +125,11 @@ export const loadCollection = async (path?: string | undefined) => {
 };
 
 // Get all collections
-export const getCollections = async (): Promise<(typeof collectionTable.$inferSelect)[]> => {
-	const collections = await db.select().from(collectionTable);
+export const getCollections = async (userId = 'user-123'): Promise<(typeof collectionTable.$inferSelect)[]> => {
+	const collections = await db
+		.select()
+		.from(collectionTable)
+		.where(eq(collectionTable.userId, userId));
 
 	return collections;
 };

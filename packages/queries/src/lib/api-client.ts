@@ -61,18 +61,18 @@ export interface ApiClient {
   entries: EntriesClient;
 }
 
-// Simple API client structure for now
+// Simple API client structure using unified RPC endpoint
 export function createApiClient(options: ApiClientOptions = {}): ApiClient {
-  const { baseUrl = '/api/rpc', headers = {}, timeout = 30000 } = options;
+  const { baseUrl = '/api', headers = {}, timeout = 30000 } = options;
 
-  const makeRequest = async (endpoint: string, data?: unknown) => {
-    const response = await fetch(`${baseUrl}/${endpoint}`, {
+  const makeRequest = async (method: string, data?: unknown) => {
+    const response = await fetch(`${baseUrl}/rpc`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         ...headers
       },
-      body: data ? JSON.stringify(data) : undefined,
+      body: JSON.stringify({ method, params: data }),
       signal: AbortSignal.timeout(timeout)
     });
 
