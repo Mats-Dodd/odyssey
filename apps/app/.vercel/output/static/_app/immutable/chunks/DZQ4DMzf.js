@@ -27259,15 +27259,13 @@ const createNote = async (e, t) => {
 					and(eq(entry.parentPath, e), eq(entry.collectionPath, get_store_value(collection)))
 				)),
 		t || (t = getNextUntitledName(B, 'Untitled', '.md')),
-		await db
-			.insert(entry)
-			.values({
-				name: t,
-				path: `${e}/${t}`.replace('//', '/'),
-				content: '',
-				parentPath: e,
-				collectionPath: get_store_value(collection)
-			}),
+		await db.insert(entry).values({
+			name: t,
+			path: `${e}/${t}`.replace('//', '/'),
+			content: '',
+			parentPath: e,
+			collectionPath: get_store_value(collection)
+		}),
 		openNote(`${e}/${t}`.replace('//', '/'));
 };
 async function openNote(e, t = !1) {
@@ -27332,15 +27330,13 @@ const deleteNote = async (e) => {
 				}
 			),
 			rr = `${(ir = t[0].name) == null ? void 0 : ir.replace(`.${I}`, '')} (${tr.length}).${I}`;
-		await db
-			.insert(entry)
-			.values({
-				name: rr,
-				path: `${e.split('/').slice(0, -1).join('/')}/${rr}`,
-				parentPath: t[0].parentPath,
-				collectionPath: t[0].collectionPath,
-				content: t[0].content
-			}),
+		await db.insert(entry).values({
+			name: rr,
+			path: `${e.split('/').slice(0, -1).join('/')}/${rr}`,
+			parentPath: t[0].parentPath,
+			collectionPath: t[0].collectionPath,
+			content: t[0].content
+		}),
 			openNote(`${e.split('/').slice(0, -1).join('/')}/${rr}`);
 	},
 	getNoteMetadataParams = async (e) => {

@@ -1,9 +1,11 @@
 <script lang="ts">
-	import { signUp, isLoading, authError } from '$lib/auth-client';
+	import { signUp, isLoading, error } from '$lib/auth.svelte';
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
 	import { Button } from '@typyst/ui/components/button';
-	import { onMount } from 'svelte';
+	import AuthForm from '$lib/components/auth/AuthForm.svelte';
+	import AuthInput from '$lib/components/auth/AuthInput.svelte';
+	import AuthError from '$lib/components/auth/AuthError.svelte';
 
 	let email = '';
 	let password = '';
@@ -48,78 +50,51 @@
 			localError = error instanceof Error ? error.message : 'An unexpected error occurred';
 		}
 	}
-
-	onMount(() => {
-		// Clear any previous auth errors
-		// Note: authError is a computed store, errors are cleared via authState
-	});
 </script>
 
 <svelte:head>
 	<title>Sign Up - Typyst</title>
 </svelte:head>
 
-<div class="flex min-h-screen items-center justify-center">
-	<div class="w-full max-w-md space-y-6 p-6">
-		<div class="text-center">
-			<h1 class="text-2xl font-bold">Sign Up</h1>
-			<p class="text-muted-foreground mt-2">Create your Typyst account</p>
+<AuthForm
+	title="Sign Up"
+	subtitle="Create your Typyst account"
+	alternativeText="Already have an account?"
+	alternativeLink="/auth/sign-in"
+	alternativeLinkText="Sign in"
+>
+	<form on:submit|preventDefault={handleSignUp} class="space-y-4">
+		<AuthInput
+			type="email"
+			bind:value={email}
+			label="Email"
+			placeholder="Enter your email"
+			required
+		/>
+
+		<div class="space-y-2">
+			<AuthInput
+				type="password"
+				bind:value={password}
+				label="Password"
+				placeholder="Enter your password"
+				required
+			/>
+			<p class="text-xs text-muted-foreground">Must be at least 8 characters long</p>
 		</div>
 
-		<form on:submit|preventDefault={handleSignUp} class="space-y-4">
-			<div class="space-y-2">
-				<label for="email" class="text-sm font-medium">Email</label>
-				<input
-					id="email"
-					type="email"
-					bind:value={email}
-					placeholder="Enter your email"
-					class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-					required
-				/>
-			</div>
+		<AuthInput
+			type="password"
+			bind:value={confirmPassword}
+			label="Confirm Password"
+			placeholder="Confirm your password"
+			required
+		/>
 
-			<div class="space-y-2">
-				<label for="password" class="text-sm font-medium">Password</label>
-				<input
-					id="password"
-					type="password"
-					bind:value={password}
-					placeholder="Enter your password"
-					class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-					required
-				/>
-				<p class="text-xs text-muted-foreground">Must be at least 8 characters long</p>
-			</div>
+		<AuthError error={$error} {localError} />
 
-			<div class="space-y-2">
-				<label for="confirmPassword" class="text-sm font-medium">Confirm Password</label>
-				<input
-					id="confirmPassword"
-					type="password"
-					bind:value={confirmPassword}
-					placeholder="Confirm your password"
-					class="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-					required
-				/>
-			</div>
-
-			{#if localError || $authError}
-				<div class="text-sm text-red-600 bg-red-50 p-3 rounded-md">
-					{localError || $authError}
-				</div>
-			{/if}
-
-			<Button type="submit" class="w-full" disabled={$isLoading}>
-				{$isLoading ? 'Creating account...' : 'Sign Up'}
-			</Button>
-		</form>
-
-		<div class="text-center">
-			<p class="text-sm text-muted-foreground">
-				Already have an account?
-				<a href="/auth/sign-in" class="text-primary hover:underline">Sign in</a>
-			</p>
-		</div>
-	</div>
-</div>
+		<Button type="submit" class="w-full" disabled={$isLoading}>
+			{$isLoading ? 'Creating account...' : 'Sign Up'}
+		</Button>
+	</form>
+</AuthForm>

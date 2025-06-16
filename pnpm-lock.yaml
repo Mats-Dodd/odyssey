@@ -65,12 +65,18 @@ importers:
       '@tiptap/starter-kit':
         specifier: ^2.2.1
         version: 2.14.0
+      '@typyst/api':
+        specifier: workspace:^
+        version: link:../../packages/api
       '@typyst/auth':
         specifier: workspace:^
         version: link:../../packages/auth
       '@typyst/db':
         specifier: workspace:^
         version: link:../../packages/db
+      '@typyst/queries':
+        specifier: workspace:^
+        version: link:../../packages/queries
       '@typyst/ui':
         specifier: workspace:^
         version: link:../../packages/ui

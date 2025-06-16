@@ -15,7 +15,10 @@
 	import '@typyst/ui/app.web.css';
 	import { ModeWatcher } from 'mode-watcher';
 	import { onMount } from 'svelte';
-	import { authState, authClient } from '$lib/auth-client';
+	// Auth state is managed automatically by authClient
+	import { authClient } from '$lib/auth-client';
+	// TODO: Add QueryProvider when Node.js version is updated
+	// import { QueryProvider } from '@typyst/queries';
 	import type { LayoutData } from './$types';
 
 	export let data: LayoutData;
@@ -48,17 +51,16 @@
 		collection.set(latestCollection.path);
 	}
 
+	// TODO: API options for query provider when Node.js version is updated
+	// $: apiOptions = { baseUrl: '/api/rpc' };
+
 	onMount(async () => {
-		// Initialize auth state with server data
-		if (data.session) {
-			authState.set({
-				user: data.user as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type assertion needed for Better Auth compatibility
-				session: data.session as any, // eslint-disable-line @typescript-eslint/no-explicit-any -- Type assertion needed for Better Auth compatibility
-				isLoading: false,
-				error: null
-			});
+		// Initialize auth state using server data if available
+		if (data.session && data.user) {
+			// Server provided session data, auth client will handle it
+			console.log('Auth data from server:', { session: data.session, user: data.user });
 		} else {
-			// Try to refresh session if no server session
+			// No server session, try to refresh
 			await authClient.refreshSession();
 		}
 
