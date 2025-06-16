@@ -1,5 +1,12 @@
 import { z } from 'zod';
-import { IdSchema, TimestampSchema, SearchFiltersSchema } from './common.js';
+import {
+  IdSchema,
+  TimestampSchema,
+  SearchFiltersSchema,
+  PaginationSchema,
+  SortSchema,
+  createPaginatedResponseSchema
+} from './common.js';
 
 // Collection schemas based on the database schema
 export const CollectionSchema = z.object({
@@ -15,6 +22,34 @@ export const CollectionSettingsSchema = z.object({
   notes: z.record(z.any()), // JSON object for notes settings
   userId: IdSchema
 });
+
+// Input schemas for operations
+export const GetCollectionInputSchema = z.object({
+  path: z.string().min(1, 'Collection path is required')
+});
+
+export const UpdateCollectionInputSchema = z.object({
+  path: z.string().min(1, 'Collection path is required'),
+  data: z.object({
+    name: z.string().min(1).max(255).optional(),
+    lastOpened: TimestampSchema.optional()
+  })
+});
+
+export const DeleteCollectionInputSchema = z.object({
+  path: z.string().min(1, 'Collection path is required')
+});
+
+// List input schema with proper filtering
+export const ListCollectionsInputSchema = z.object({
+  pagination: PaginationSchema.optional(),
+  search: z.string().optional(),
+  userId: z.string().optional(),
+  sort: SortSchema.optional()
+});
+
+// Standardized response schemas
+export const CollectionsResponseSchema = createPaginatedResponseSchema(CollectionSchema);
 
 // Request schemas
 export const CreateCollectionSchema = z.object({
@@ -69,3 +104,10 @@ export type UpdateCollectionSettings = z.infer<typeof UpdateCollectionSettingsSc
 export type CollectionFilters = z.infer<typeof CollectionFiltersSchema>;
 export type CollectionWithSettings = z.infer<typeof CollectionWithSettingsSchema>;
 export type CollectionListItem = z.infer<typeof CollectionListItemSchema>;
+
+// Input type exports for TanStack Query
+export type GetCollectionInput = z.infer<typeof GetCollectionInputSchema>;
+export type UpdateCollectionInput = z.infer<typeof UpdateCollectionInputSchema>;
+export type DeleteCollectionInput = z.infer<typeof DeleteCollectionInputSchema>;
+export type ListCollectionsInput = z.infer<typeof ListCollectionsInputSchema>;
+export type CollectionsResponse = z.infer<typeof CollectionsResponseSchema>;
