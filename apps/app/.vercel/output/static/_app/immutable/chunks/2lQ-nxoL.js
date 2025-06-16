@@ -14,15 +14,13 @@ const F = async (t) => {
 					.where(p(s(e.parentPath, t), s(e.collectionPath, i(c)))));
 		const o = w(l, 'Untitled');
 		return (
-			await r
-				.insert(e)
-				.values({
-					name: o,
-					path: `${t}/${o}`.replace('//', '/'),
-					parentPath: t,
-					collectionPath: i(c),
-					isFolder: !0
-				}),
+			await r.insert(e).values({
+				name: o,
+				path: `${t}/${o}`.replace('//', '/'),
+				parentPath: t,
+				collectionPath: i(c),
+				isFolder: !0
+			}),
 			`${t}/${o}`.replace('//', '/')
 		);
 	},

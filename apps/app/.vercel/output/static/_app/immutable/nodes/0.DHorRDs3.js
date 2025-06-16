@@ -20986,17 +20986,15 @@ function h$(s, e, n) {
 			if (He.name.toLowerCase().endsWith('.md'))
 				try {
 					const Le = await He.text();
-					await un
-						.insert(gl)
-						.values({
-							name: Q,
-							path: ze,
-							content: Le,
-							parentPath: Re,
-							collectionPath: `/${le}`,
-							size: He.size,
-							isFolder: !1
-						}),
+					await un.insert(gl).values({
+						name: Q,
+						path: ze,
+						content: Le,
+						parentPath: Re,
+						collectionPath: `/${le}`,
+						size: He.size,
+						isFolder: !1
+					}),
 						console.log('Inserted file:', Q);
 				} catch (Le) {
 					console.error('Error processing file:', Q, Le);
@@ -21010,16 +21008,14 @@ function h$(s, e, n) {
 			Ue = $e[$e.length - 1],
 			He = '/' + $e.slice(0, -1).join('/');
 		try {
-			await un
-				.insert(gl)
-				.values({
-					name: Ue,
-					path: le,
-					content: void 0,
-					parentPath: He,
-					collectionPath: `/${se}`,
-					isFolder: !0
-				}),
+			await un.insert(gl).values({
+				name: Ue,
+				path: le,
+				content: void 0,
+				parentPath: He,
+				collectionPath: `/${se}`,
+				isFolder: !0
+			}),
 				console.log('Created folder entry:', le);
 		} catch (ze) {
 			console.error('Error creating folder entry:', le, ze);
