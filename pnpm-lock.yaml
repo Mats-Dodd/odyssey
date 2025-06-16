@@ -440,6 +440,9 @@ importers:
       '@typyst/db':
         specifier: workspace:*
         version: link:../db
+      drizzle-orm:
+        specifier: ^0.33.0
+        version: 0.33.0(@electric-sql/pglite@0.2.17)(postgres@3.4.7)
       zod:
         specifier: ^3.22.0
         version: 3.25.64
@@ -527,6 +530,28 @@ importers:
       drizzle-kit:
         specifier: ^0.24.0
         version: 0.24.2
+      typescript:
+        specifier: ^5.0.0
+        version: 5.8.3
+
+  packages/queries:
+    dependencies:
+      '@orpc/client':
+        specifier: ^1.5.1
+        version: 1.5.1
+      '@tanstack/svelte-query':
+        specifier: ^5.59.16
+        version: 5.80.7(svelte@4.2.20)
+      '@typyst/api':
+        specifier: workspace:*
+        version: link:../api
+      svelte:
+        specifier: ^4.0.0
+        version: 4.2.20
+    devDependencies:
+      '@typyst/eslint-config':
+        specifier: workspace:*
+        version: link:../config-eslint
       typescript:
         specifier: ^5.0.0
         version: 5.8.3
@@ -2193,6 +2218,19 @@ packages:
       postcss-selector-parser: 6.0.10
       tailwindcss: 3.4.17
     dev: true
+
+  /@tanstack/query-core@5.80.7:
+    resolution: {integrity: sha512-s09l5zeUKC8q7DCCCIkVSns8zZrK4ZDT6ryEjxNBFi68G4z2EBobBS7rdOY3r6W1WbUDpc1fe5oY+YO/+2UVUg==}
+    dev: false
+
+  /@tanstack/svelte-query@5.80.7(svelte@4.2.20):
+    resolution: {integrity: sha512-QTVW6eBkKc0n4rjXNBhuJkVwY1xu/xVnOnhTtsW9RQOlSZLl14uQwXB23fV2cD6G+Ibo34OxhKAgyfLuEinI9w==}
+    peerDependencies:
+      svelte: ^3.54.0 || ^4.0.0 || ^5.0.0
+    dependencies:
+      '@tanstack/query-core': 5.80.7
+      svelte: 4.2.20
+    dev: false
 
   /@tauri-apps/api@2.0.1:
     resolution: {integrity: sha512-eoQWT+Tq1qSwQpHV+nw1eNYe5B/nm1PoRjQCRiEOS12I1b+X4PUcREfXVX8dPcBT6GrzWGDtaecY0+1p0Rfqlw==}

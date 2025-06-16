@@ -32,14 +32,15 @@
   },
   "dependencies": {
     "@orpc/server": "^1.5.1",
+    "drizzle-orm": "^0.33.0",
     "zod": "^3.22.0"
   },
   "peerDependencies": {
-    "@typyst/db": "workspace:*",
-    "@typyst/auth": "workspace:*"
+    "@typyst/auth": "workspace:*",
+    "@typyst/db": "workspace:*"
   },
   "devDependencies": {
     "@typyst/eslint-config": "workspace:*",
     "typescript": "^5.0.0"
   }
-} 
+}
