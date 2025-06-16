@@ -2,43 +2,49 @@
 
 ## Overview
 
-Implement a reactive, type-safe data layer using TanStack Query that works seamlessly with the local-first architecture and provides foundation for future API integration.
+Implement a reactive, type-safe data layer using TanStack Query that builds directly on the oRPC contracts from `@typyst/api`. This approach ensures perfect type safety and creates a seamless migration path from local-first to API-based architecture.
+
+## Prerequisites
+
+**⚠️ IMPORTANT:** This task requires the `@typyst/api` package to be completed first with full oRPC router definitions, Zod schemas, and middleware patterns. The TanStack Query implementation will directly implement these oRPC contracts locally.
 
 ## Context
 
-TanStack Query will serve as the data fetching and caching layer that:
-- Works with the current local-first architecture (PGLite/filesystem)
-- Provides reactive data management with Svelte
-- Enables optimistic updates for better UX
-- Creates foundation for future API integration
-- Maintains type safety from database to UI
+TanStack Query will serve as the reactive data layer that:
+- Implements oRPC contracts locally using Supabase
+- Provides context-based database access via Svelte
+- Enables aggressive optimistic updates for instant UX
+- Creates perfect type safety from oRPC → Query → UI
+- Allows seamless migration: just swap implementation when API is ready
 
 ## Goals
 
-1. Create a new `@typyst/queries` package
-2. Set up QueryClient providers for both web and desktop apps
-3. Implement query hooks for collections and entries
-4. Create reactive query parameters using Svelte stores
-5. Implement optimistic updates for CRUD operations
-6. Set up SSR-compatible prefetching for SvelteKit
-7. Create migration patterns for future API integration
+1. Create `@typyst/queries` package that implements oRPC contracts locally
+2. Set up context-based database access (no prop drilling)
+3. Implement query hooks that follow oRPC interface exactly
+4. Create aggressive optimistic updates for all mutations
+5. Set up QueryClient factory with local-first optimizations
+6. Build migration patterns for future API integration
+7. Ensure perfect type safety throughout the stack
 
 ## Package Structure
 
 ```
 packages/queries/
 ├── src/
-│   ├── web/                    # Web-specific queries (PGLite)
-│   │   ├── collections.ts      # Collection queries/mutations
-│   │   ├── entries.ts          # Entry queries/mutations
-│   │   └── auth.ts             # Auth-related queries
-│   ├── desktop/                # Desktop-specific queries (Tauri)
-│   │   ├── files.ts            # File system queries
-│   │   └── settings.ts         # Settings queries
-│   ├── shared/                 # Shared query keys and types
-│   │   ├── keys.ts             # Query key factory
-│   │   ├── utils.ts            # Shared utilities
-│   │   └── types.ts            # Shared types
+│   ├── lib/
+│   │   ├── query-keys.ts       # Query key factory using oRPC patterns
+│   │   ├── query-client.ts     # QueryClient factory with local-first defaults
+│   │   ├── context.ts          # Svelte context helpers for DB access
+│   │   └── utils.ts            # Optimistic update utilities
+│   ├── implementations/
+│   │   ├── collections.ts      # Local implementation of collections oRPC contract
+│   │   ├── entries.ts          # Local implementation of entries oRPC contract
+│   │   └── auth.ts             # Local implementation of auth oRPC contract
+│   ├── hooks/
+│   │   ├── collections.ts      # TanStack Query hooks for collections
+│   │   ├── entries.ts          # TanStack Query hooks for entries
+│   │   └── auth.ts             # TanStack Query hooks for auth
 │   └── index.ts                # Main exports
 ├── package.json
 └── README.md
@@ -56,9 +62,9 @@ packages/queries/
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./web": "./src/web/index.ts",
-    "./desktop": "./src/desktop/index.ts",
-    "./shared": "./src/shared/index.ts"
+    "./hooks": "./src/hooks/index.ts",
+    "./implementations": "./src/implementations/index.ts",
+    "./lib": "./src/lib/index.ts"
   },
   "dependencies": {
     "@tanstack/svelte-query": "^5.x",
@@ -74,691 +80,576 @@ packages/queries/
 }
 ```
 
+### Context-Based Database Access
+
+**packages/queries/src/lib/context.ts:**
+```typescript
+import { getContext, setContext } from 'svelte';
+import type { SupabaseDatabase } from '@typyst/db/supabase';
+
+const DB_CONTEXT_KEY = Symbol('typyst-db');
+
+export function setDatabaseContext(db: SupabaseDatabase) {
+  setContext(DB_CONTEXT_KEY, db);
+}
+
+export function getDatabaseContext(): SupabaseDatabase {
+  const db = getContext<SupabaseDatabase>(DB_CONTEXT_KEY);
+  if (!db) {
+    throw new Error(
+      'Database context not found. Did you call setDatabaseContext() in a parent component?'
+    );
+  }
+  return db;
+}
+
+// Helper for components to check if context is available
+export function hasDatabaseContext(): boolean {
+  try {
+    getDatabaseContext();
+    return true;
+  } catch {
+    return false;
+  }
+}
+```
+
 ### Query Key Factory
 
-**packages/queries/src/shared/keys.ts:**
+**packages/queries/src/lib/query-keys.ts:**
 ```typescript
+// Import input types from oRPC contracts
+import type { 
+  ListCollectionsInput, 
+  GetCollectionInput,
+  ListEntriesInput,
+  GetEntryInput,
+  SearchEntriesInput 
+} from '@typyst/api';
+
 export const queryKeys = {
   all: ['typyst'] as const,
   
   auth: {
     all: ['typyst', 'auth'] as const,
-    user: () => [...queryKeys.auth.all, 'user'] as const,
     session: () => [...queryKeys.auth.all, 'session'] as const,
+    user: () => [...queryKeys.auth.all, 'user'] as const,
   },
   
   collections: {
     all: ['typyst', 'collections'] as const,
-    list: (filters?: CollectionFilters) => 
-      [...queryKeys.collections.all, 'list', filters] as const,
-    detail: (id: string) => 
-      [...queryKeys.collections.all, 'detail', id] as const,
+    list: (input?: ListCollectionsInput) => 
+      [...queryKeys.collections.all, 'list', input] as const,
+    detail: (input: GetCollectionInput) => 
+      [...queryKeys.collections.all, 'detail', input] as const,
     entries: (collectionId: string) => 
       [...queryKeys.collections.all, 'entries', collectionId] as const,
   },
   
   entries: {
     all: ['typyst', 'entries'] as const,
-    detail: (id: string) => 
-      [...queryKeys.entries.all, 'detail', id] as const,
-    search: (query: string) => 
-      [...queryKeys.entries.all, 'search', query] as const,
+    list: (input?: ListEntriesInput) =>
+      [...queryKeys.entries.all, 'list', input] as const,
+    detail: (input: GetEntryInput) => 
+      [...queryKeys.entries.all, 'detail', input] as const,
+    search: (input: SearchEntriesInput) => 
+      [...queryKeys.entries.all, 'search', input] as const,
   }
 } as const;
 
 export type QueryKeys = typeof queryKeys;
 ```
 
-### Shared Utilities
+### QueryClient Factory
 
-**packages/queries/src/shared/utils.ts:**
-```typescript
-import { writable } from 'svelte/store';
-import type { CreateQueryOptions } from '@tanstack/svelte-query';
-
-// Helper for creating reactive query options
-export function createReactiveQuery<TData, TError = Error>(
-  optionsFn: () => CreateQueryOptions<TData, TError>
-) {
-  const options = writable(optionsFn());
-  
-  return {
-    options,
-    update: () => options.set(optionsFn()),
-  };
-}
-
-// Debounced search helper
-export function createDebouncedSearch(delay = 300) {
-  const searchTerm = writable('');
-  let timeout: NodeJS.Timeout;
-  
-  const setSearch = (value: string) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => searchTerm.set(value), delay);
-  };
-  
-  return { searchTerm, setSearch };
-}
-
-// Optimistic update helper
-export function optimisticUpdate<T>(
-  queryClient: QueryClient,
-  queryKey: unknown[],
-  updater: (old: T) => T
-) {
-  const previousData = queryClient.getQueryData<T>(queryKey);
-  
-  if (previousData) {
-    queryClient.setQueryData(queryKey, updater(previousData));
-  }
-  
-  return { previousData };
-}
-```
-
-### Web Collections Queries
-
-**packages/queries/src/web/collections.ts:**
-```typescript
-import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { derived } from 'svelte/store';
-import { eq, desc, like, or } from 'drizzle-orm';
-import type { Collection, NewCollection } from '@typyst/db/schema/app';
-import type { AppDatabase } from '@typyst/db/app';
-import { queryKeys } from '../shared/keys.js';
-import { optimisticUpdate } from '../shared/utils.js';
-
-export function useCollections(db: AppDatabase) {
-  return createQuery({
-    queryKey: queryKeys.collections.list(),
-    queryFn: async () => {
-      const result = await db.db
-        .select()
-        .from(db.schema.collection)
-        .orderBy(desc(db.schema.collection.updatedAt));
-      return result;
-    }
-  });
-}
-
-export function useCollection(db: AppDatabase, id: string) {
-  return createQuery({
-    queryKey: queryKeys.collections.detail(id),
-    queryFn: async () => {
-      const result = await db.db
-        .select()
-        .from(db.schema.collection)
-        .where(eq(db.schema.collection.id, id))
-        .limit(1);
-      return result[0] || null;
-    },
-    enabled: !!id
-  });
-}
-
-export function useCreateCollection(db: AppDatabase) {
-  const queryClient = useQueryClient();
-  
-  return createMutation({
-    mutationFn: async (data: Omit<NewCollection, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const newCollection: NewCollection = {
-        ...data,
-        id: crypto.randomUUID(),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      const [collection] = await db.db
-        .insert(db.schema.collection)
-        .values(newCollection)
-        .returning();
-      
-      return collection;
-    },
-    onSuccess: (newCollection) => {
-      // Add to collections list cache
-      queryClient.setQueryData(
-        queryKeys.collections.list(),
-        (old: Collection[] = []) => [newCollection, ...old]
-      );
-      
-      // Set individual collection cache
-      queryClient.setQueryData(
-        queryKeys.collections.detail(newCollection.id),
-        newCollection
-      );
-    },
-    onError: (error) => {
-      console.error('Failed to create collection:', error);
-    }
-  });
-}
-
-export function useUpdateCollection(db: AppDatabase) {
-  const queryClient = useQueryClient();
-  
-  return createMutation({
-    mutationFn: async ({ 
-      id, 
-      data 
-    }: { 
-      id: string; 
-      data: Partial<Omit<Collection, 'id' | 'createdAt' | 'updatedAt'>>
-    }) => {
-      const updateData = {
-        ...data,
-        updatedAt: new Date()
-      };
-      
-      const [updated] = await db.db
-        .update(db.schema.collection)
-        .set(updateData)
-        .where(eq(db.schema.collection.id, id))
-        .returning();
-      
-      return updated;
-    },
-    onMutate: async ({ id, data }) => {
-      // Cancel outgoing refetches
-      await queryClient.cancelQueries({ 
-        queryKey: queryKeys.collections.detail(id) 
-      });
-      
-      // Optimistically update individual collection
-      const { previousData: previousCollection } = optimisticUpdate(
-        queryClient,
-        queryKeys.collections.detail(id),
-        (old: Collection) => ({ ...old, ...data, updatedAt: new Date() })
-      );
-      
-      // Optimistically update collections list
-      const { previousData: previousList } = optimisticUpdate(
-        queryClient,
-        queryKeys.collections.list(),
-        (old: Collection[] = []) => 
-          old.map(col => col.id === id ? { ...col, ...data, updatedAt: new Date() } : col)
-      );
-      
-      return { previousCollection, previousList };
-    },
-    onError: (err, variables, context) => {
-      // Rollback on error
-      if (context?.previousCollection) {
-        queryClient.setQueryData(
-          queryKeys.collections.detail(variables.id),
-          context.previousCollection
-        );
-      }
-      if (context?.previousList) {
-        queryClient.setQueryData(
-          queryKeys.collections.list(),
-          context.previousList
-        );
-      }
-    },
-    onSettled: () => {
-      // Always refetch after error or success
-      queryClient.invalidateQueries({ 
-        queryKey: queryKeys.collections.all 
-      });
-    }
-  });
-}
-
-export function useDeleteCollection(db: AppDatabase) {
-  const queryClient = useQueryClient();
-  
-  return createMutation({
-    mutationFn: async (id: string) => {
-      await db.db
-        .delete(db.schema.collection)
-        .where(eq(db.schema.collection.id, id));
-      
-      return { id };
-    },
-    onSuccess: ({ id }) => {
-      // Remove from collections list
-      queryClient.setQueryData(
-        queryKeys.collections.list(),
-        (old: Collection[] = []) => old.filter(col => col.id !== id)
-      );
-      
-      // Remove individual collection cache
-      queryClient.removeQueries({
-        queryKey: queryKeys.collections.detail(id)
-      });
-      
-      // Remove related entries cache
-      queryClient.removeQueries({
-        queryKey: queryKeys.collections.entries(id)
-      });
-    }
-  });
-}
-```
-
-### Web Entry Search with Reactive Parameters
-
-**packages/queries/src/web/entries.ts:**
-```typescript
-import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { writable, derived } from 'svelte/store';
-import { eq, desc, like, or, and } from 'drizzle-orm';
-import type { Entry, NewEntry } from '@typyst/db/schema/app';
-import type { AppDatabase } from '@typyst/db/app';
-import { queryKeys } from '../shared/keys.js';
-
-export function useEntries(db: AppDatabase, collectionId: string) {
-  return createQuery({
-    queryKey: queryKeys.collections.entries(collectionId),
-    queryFn: async () => {
-      const result = await db.db
-        .select()
-        .from(db.schema.entry)
-        .where(eq(db.schema.entry.collectionId, collectionId))
-        .orderBy(desc(db.schema.entry.updatedAt));
-      
-      return result;
-    },
-    enabled: !!collectionId
-  });
-}
-
-export function useEntry(db: AppDatabase, id: string) {
-  return createQuery({
-    queryKey: queryKeys.entries.detail(id),
-    queryFn: async () => {
-      const result = await db.db
-        .select()
-        .from(db.schema.entry)
-        .where(eq(db.schema.entry.id, id))
-        .limit(1);
-      
-      return result[0] || null;
-    },
-    enabled: !!id
-  });
-}
-
-export function useEntrySearch(db: AppDatabase) {
-  const searchTerm = writable('');
-  const collectionId = writable<string | null>(null);
-  
-  // Create reactive query options
-  const queryOptions = derived(
-    [searchTerm, collectionId],
-    ([$searchTerm, $collectionId]) => ({
-      queryKey: queryKeys.entries.search($searchTerm),
-      queryFn: async () => {
-        let query = db.db.select().from(db.schema.entry);
-        
-        const conditions = [];
-        
-        if ($searchTerm) {
-          conditions.push(
-            or(
-              like(db.schema.entry.title, `%${$searchTerm}%`),
-              like(db.schema.entry.content, `%${$searchTerm}%`)
-            )
-          );
-        }
-        
-        if ($collectionId) {
-          conditions.push(eq(db.schema.entry.collectionId, $collectionId));
-        }
-        
-        if (conditions.length > 0) {
-          query = query.where(and(...conditions));
-        }
-        
-        return query.orderBy(desc(db.schema.entry.updatedAt));
-      },
-      enabled: $searchTerm.length > 2, // Only search with 3+ characters
-    })
-  );
-  
-  const query = createQuery(queryOptions);
-  
-  return {
-    query,
-    searchTerm,
-    collectionId,
-  };
-}
-
-export function useCreateEntry(db: AppDatabase) {
-  const queryClient = useQueryClient();
-  
-  return createMutation({
-    mutationFn: async (data: Omit<NewEntry, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const newEntry: NewEntry = {
-        ...data,
-        id: crypto.randomUUID(),
-        createdAt: new Date(),
-        updatedAt: new Date()
-      };
-      
-      const [entry] = await db.db
-        .insert(db.schema.entry)
-        .values(newEntry)
-        .returning();
-      
-      return entry;
-    },
-    onSuccess: (newEntry) => {
-      // Add to collection entries cache
-      queryClient.setQueryData(
-        queryKeys.collections.entries(newEntry.collectionId),
-        (old: Entry[] = []) => [newEntry, ...old]
-      );
-      
-      // Set individual entry cache
-      queryClient.setQueryData(
-        queryKeys.entries.detail(newEntry.id),
-        newEntry
-      );
-      
-      // Invalidate search results
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.entries.all
-      });
-    }
-  });
-}
-```
-
-### Desktop File System Queries
-
-**packages/queries/src/desktop/files.ts:**
-```typescript
-import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
-import { invoke } from '@tauri-apps/api/tauri';
-
-interface FileNode {
-  name: string;
-  path: string;
-  isDirectory: boolean;
-  children?: FileNode[];
-}
-
-export function useFileTree(path: string) {
-  return createQuery({
-    queryKey: ['files', 'tree', path],
-    queryFn: () => invoke<FileNode[]>('get_file_tree', { path }),
-    staleTime: 1000 * 60, // 1 minute
-    enabled: !!path
-  });
-}
-
-export function useFileContent(path: string) {
-  return createQuery({
-    queryKey: ['files', 'content', path],
-    queryFn: () => invoke<string>('read_file', { path }),
-    enabled: !!path,
-  });
-}
-
-export function useSaveFile() {
-  const queryClient = useQueryClient();
-  
-  return createMutation({
-    mutationFn: ({ path, content }: { path: string; content: string }) =>
-      invoke('write_file', { path, content }),
-    onSuccess: (_, { path }) => {
-      // Invalidate file content cache
-      queryClient.invalidateQueries({
-        queryKey: ['files', 'content', path]
-      });
-      
-      // Update parent directory tree
-      const parentDir = path.substring(0, path.lastIndexOf('/'));
-      queryClient.invalidateQueries({
-        queryKey: ['files', 'tree', parentDir]
-      });
-    }
-  });
-}
-
-export function useCreateFile() {
-  const queryClient = useQueryClient();
-  
-  return createMutation({
-    mutationFn: ({ path, content = '' }: { path: string; content?: string }) =>
-      invoke('create_file', { path, content }),
-    onSuccess: (_, { path }) => {
-      // Invalidate parent directory
-      const parentDir = path.substring(0, path.lastIndexOf('/'));
-      queryClient.invalidateQueries({
-        queryKey: ['files', 'tree', parentDir]
-      });
-    }
-  });
-}
-```
-
-### QueryClient Setup for Web App
-
-**apps/app/src/lib/query-client.ts:**
+**packages/queries/src/lib/query-client.ts:**
 ```typescript
 import { QueryClient } from '@tanstack/svelte-query';
-import { browser } from '$app/environment';
 
-export function createAppQueryClient() {
+export function createTypystQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: {
-        enabled: browser, // Disable SSR queries by default
-        staleTime: 1000 * 60 * 5, // 5 minutes
-        refetchOnWindowFocus: false, // Local-first, no need to refetch
-        refetchOnMount: false,
-        retry: 1
+        staleTime: 1000 * 30, // 30 seconds (short for local-first)
+        refetchOnWindowFocus: false, // Local data doesn't need window focus refetch
+        refetchOnMount: false, // Local data is already fresh
+        retry: 1, // Local operations shouldn't need many retries
+        refetchOnReconnect: false, // Local-first doesn't need reconnect logic
       },
       mutations: {
-        retry: 0, // Local operations shouldn't need retries
+        retry: 0, // Local mutations shouldn't retry automatically
       }
     }
   });
 }
 ```
 
-**apps/app/src/routes/+layout.ts:**
+### Local oRPC Contract Implementation
+
+**packages/queries/src/implementations/collections.ts:**
 ```typescript
-import { createAppQueryClient } from '$lib/query-client.js';
-import { appDb } from '$lib/database.js';
+import { eq, desc, like, and } from 'drizzle-orm';
+import type { 
+  ListCollectionsInput, 
+  CollectionsResponse,
+  GetCollectionInput,
+  Collection,
+  CreateCollectionInput,
+  UpdateCollectionInput,
+  DeleteCollectionInput,
+  SuccessResponse
+} from '@typyst/api';
+import type { SupabaseDatabase } from '@typyst/db/supabase';
 
-export const load = async () => {
-  const queryClient = createAppQueryClient();
+export async function listCollections(
+  db: SupabaseDatabase, 
+  input?: ListCollectionsInput
+): Promise<CollectionsResponse> {
+  let query = db.db.select().from(db.schema.collection);
   
-  return {
-    queryClient,
-    db: appDb
-  };
-};
-```
-
-**apps/app/src/routes/+layout.svelte:**
-```svelte
-<script lang="ts">
-  import { QueryClientProvider } from '@tanstack/svelte-query';
-  import { setContext } from 'svelte';
+  // Apply filters from oRPC input
+  const conditions = [];
   
-  export let data;
-  
-  // Set database context for child components
-  setContext('db', data.db);
-</script>
-
-<QueryClientProvider client={data.queryClient}>
-  <slot />
-</QueryClientProvider>
-```
-
-### SSR Prefetching Example
-
-**apps/app/src/routes/collections/[id]/+page.ts:**
-```typescript
-import type { PageLoad } from './$types';
-import { queryKeys } from '@typyst/queries/shared';
-
-export const load: PageLoad = async ({ params, parent }) => {
-  const { queryClient, db } = await parent();
-  
-  // Prefetch collection data
-  await Promise.all([
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.collections.detail(params.id),
-      queryFn: async () => {
-        const result = await db.db
-          .select()
-          .from(db.schema.collection)
-          .where(eq(db.schema.collection.id, params.id))
-          .limit(1);
-        return result[0] || null;
-      },
-    }),
-    
-    // Prefetch entries for this collection
-    queryClient.prefetchQuery({
-      queryKey: queryKeys.collections.entries(params.id),
-      queryFn: async () => {
-        return db.db
-          .select()
-          .from(db.schema.entry)
-          .where(eq(db.schema.entry.collectionId, params.id))
-          .orderBy(desc(db.schema.entry.createdAt));
-      },
-    })
-  ]);
-  
-  return {
-    collectionId: params.id,
-  };
-};
-```
-
-### Component Usage Example
-
-**apps/app/src/routes/collections/[id]/+page.svelte:**
-```svelte
-<script lang="ts">
-  import { page } from '$app/stores';
-  import { getContext } from 'svelte';
-  import { useCollection, useEntries, useCreateEntry } from '@typyst/queries/web';
-  
-  const db = getContext('db');
-  
-  $: collectionId = $page.params.id;
-  $: collection = useCollection(db, collectionId);
-  $: entries = useEntries(db, collectionId);
-  $: createEntry = useCreateEntry(db);
-  
-  async function handleCreateEntry(data: { title: string; content: string }) {
-    $createEntry.mutate({
-      ...data,
-      collectionId,
-      userId: 'current-user-id' // Would come from auth context
-    });
+  if (input?.userId) {
+    conditions.push(eq(db.schema.collection.userId, input.userId));
   }
-</script>
+  
+  if (input?.search) {
+    conditions.push(
+      like(db.schema.collection.name, `%${input.search}%`)
+    );
+  }
+  
+  if (conditions.length > 0) {
+    query = query.where(and(...conditions));
+  }
+  
+  // Apply sorting
+  const sortField = input?.sort?.field || 'updatedAt';
+  const sortDirection = input?.sort?.direction || 'desc';
+  
+  if (sortDirection === 'desc') {
+    query = query.orderBy(desc(db.schema.collection[sortField]));
+  } else {
+    query = query.orderBy(db.schema.collection[sortField]);
+  }
+  
+  // Apply pagination
+  const page = input?.pagination?.page || 1;
+  const limit = input?.pagination?.limit || 20;
+  const offset = (page - 1) * limit;
+  
+  const collections = await query.limit(limit).offset(offset);
+  
+  // Get total count for pagination
+  const totalResult = await db.db
+    .select({ count: sql<number>`count(*)` })
+    .from(db.schema.collection)
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
+  
+  const total = totalResult[0]?.count || 0;
+  
+  return {
+    collections,
+    pagination: {
+      page,
+      limit,
+      total,
+      hasMore: offset + collections.length < total
+    }
+  };
+}
 
-{#if $collection.isLoading}
-  <div>Loading collection...</div>
-{:else if $collection.error}
-  <div>Error: {$collection.error.message}</div>
-{:else if $collection.data}
-  <h1>{$collection.data.name}</h1>
+export async function getCollection(
+  db: SupabaseDatabase,
+  input: GetCollectionInput
+): Promise<Collection | null> {
+  const result = await db.db
+    .select()
+    .from(db.schema.collection)
+    .where(eq(db.schema.collection.id, input.id))
+    .limit(1);
   
-  {#if $entries.isLoading}
-    <div>Loading entries...</div>
-  {:else if $entries.error}
-    <div>Error loading entries: {$entries.error.message}</div>
-  {:else}
-    <div class="entries">
-      {#each $entries.data || [] as entry (entry.id)}
-        <div class="entry">
-          <h3>{entry.title}</h3>
-          <p>{entry.content}</p>
-        </div>
-      {/each}
-    </div>
-  {/if}
+  return result[0] || null;
+}
+
+export async function createCollection(
+  db: SupabaseDatabase,
+  input: CreateCollectionInput
+): Promise<Collection> {
+  const newCollection = {
+    ...input,
+    id: crypto.randomUUID(),
+    createdAt: new Date(),
+    updatedAt: new Date()
+  };
   
-  <button 
-    on:click={() => handleCreateEntry({ title: 'New Entry', content: '' })}
-    disabled={$createEntry.isPending}
-  >
-    {$createEntry.isPending ? 'Creating...' : 'Create Entry'}
-  </button>
-{/if}
+  const [collection] = await db.db
+    .insert(db.schema.collection)
+    .values(newCollection)
+    .returning();
+  
+  return collection;
+}
+
+export async function updateCollection(
+  db: SupabaseDatabase,
+  input: UpdateCollectionInput & { id: string }
+): Promise<Collection> {
+  const { id, ...updateData } = input;
+  
+  const [updated] = await db.db
+    .update(db.schema.collection)
+    .set({ ...updateData, updatedAt: new Date() })
+    .where(eq(db.schema.collection.id, id))
+    .returning();
+  
+  if (!updated) {
+    throw new Error(`Collection with id ${id} not found`);
+  }
+  
+  return updated;
+}
+
+export async function deleteCollection(
+  db: SupabaseDatabase,
+  input: DeleteCollectionInput
+): Promise<SuccessResponse> {
+  await db.db
+    .delete(db.schema.collection)
+    .where(eq(db.schema.collection.id, input.id));
+  
+  return { success: true };
+}
 ```
+
+### Query Hooks with Aggressive Optimistic Updates
+
+**packages/queries/src/hooks/collections.ts:**
+```typescript
+import { createQuery, createMutation, useQueryClient } from '@tanstack/svelte-query';
+import type { 
+  ListCollectionsInput,
+  CreateCollectionInput,
+  UpdateCollectionInput,
+  Collection
+} from '@typyst/api';
+import { queryKeys } from '../lib/query-keys.js';
+import { getDatabaseContext } from '../lib/context.js';
+import {
+  listCollections,
+  getCollection,
+  createCollection,
+  updateCollection,
+  deleteCollection
+} from '../implementations/collections.js';
+
+export function useCollections(input?: ListCollectionsInput) {
+  const db = getDatabaseContext();
+  
+  return createQuery({
+    queryKey: queryKeys.collections.list(input),
+    queryFn: () => listCollections(db, input),
+  });
+}
+
+export function useCollection(id: string) {
+  const db = getDatabaseContext();
+  
+  return createQuery({
+    queryKey: queryKeys.collections.detail({ id }),
+    queryFn: () => getCollection(db, { id }),
+    enabled: !!id,
+  });
+}
+
+export function useCreateCollection() {
+  const queryClient = useQueryClient();
+  const db = getDatabaseContext();
+  
+  return createMutation({
+    mutationFn: (input: CreateCollectionInput) => createCollection(db, input),
+    
+    onMutate: async (input) => {
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: queryKeys.collections.all });
+      
+      // Create optimistic collection
+      const optimisticCollection: Collection = {
+        ...input,
+        id: `temp-${Date.now()}`, // Temporary ID for optimistic update
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      
+      // Optimistically update collections list
+      queryClient.setQueryData(
+        queryKeys.collections.list(),
+        (old: CollectionsResponse | undefined) => {
+          if (!old) return { collections: [optimisticCollection], pagination: { page: 1, limit: 20, total: 1, hasMore: false } };
+          return {
+            ...old,
+            collections: [optimisticCollection, ...old.collections],
+            pagination: { ...old.pagination, total: old.pagination.total + 1 }
+          };
+        }
+      );
+      
+      return { optimisticCollection };
+    },
+    
+    onError: (error, variables, context) => {
+      // Rollback optimistic update
+      if (context?.optimisticCollection) {
+        queryClient.setQueryData(
+          queryKeys.collections.list(),
+          (old: CollectionsResponse | undefined) => {
+            if (!old) return old;
+            return {
+              ...old,
+              collections: old.collections.filter(c => c.id !== context.optimisticCollection.id),
+              pagination: { ...old.pagination, total: Math.max(0, old.pagination.total - 1) }
+            };
+          }
+        );
+      }
+    },
+    
+    onSuccess: (newCollection, variables, context) => {
+      // Replace optimistic update with real data
+      if (context?.optimisticCollection) {
+        queryClient.setQueryData(
+          queryKeys.collections.list(),
+          (old: CollectionsResponse | undefined) => {
+            if (!old) return old;
+            return {
+              ...old,
+              collections: old.collections.map(c => 
+                c.id === context.optimisticCollection.id ? newCollection : c
+              )
+            };
+          }
+        );
+      }
+      
+      // Set individual collection cache
+      queryClient.setQueryData(
+        queryKeys.collections.detail({ id: newCollection.id }),
+        newCollection
+      );
+    }
+  });
+}
+
+export function useUpdateCollection() {
+  const queryClient = useQueryClient();
+  const db = getDatabaseContext();
+  
+  return createMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateCollectionInput }) => 
+      updateCollection(db, { id, ...data }),
+    
+    onMutate: async ({ id, data }) => {
+      // Cancel outgoing queries
+      await queryClient.cancelQueries({ queryKey: queryKeys.collections.detail({ id }) });
+      
+      // Get previous data for rollback
+      const previousCollection = queryClient.getQueryData(queryKeys.collections.detail({ id }));
+      
+      // Optimistically update individual collection
+      queryClient.setQueryData(
+        queryKeys.collections.detail({ id }),
+        (old: Collection | undefined) => old ? { ...old, ...data, updatedAt: new Date().toISOString() } : old
+      );
+      
+      // Optimistically update collections list
+      queryClient.setQueryData(
+        queryKeys.collections.list(),
+        (old: CollectionsResponse | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            collections: old.collections.map(c => 
+              c.id === id ? { ...c, ...data, updatedAt: new Date().toISOString() } : c
+            )
+          };
+        }
+      );
+      
+      return { previousCollection };
+    },
+    
+    onError: (error, { id }, context) => {
+      // Rollback on error
+      if (context?.previousCollection) {
+        queryClient.setQueryData(
+          queryKeys.collections.detail({ id }),
+          context.previousCollection
+        );
+        
+        queryClient.setQueryData(
+          queryKeys.collections.list(),
+          (old: CollectionsResponse | undefined) => {
+            if (!old) return old;
+            return {
+              ...old,
+              collections: old.collections.map(c => 
+                c.id === id ? context.previousCollection : c
+              )
+            };
+          }
+        );
+      }
+    }
+  });
+}
+
+export function useDeleteCollection() {
+  const queryClient = useQueryClient();
+  const db = getDatabaseContext();
+  
+  return createMutation({
+    mutationFn: (id: string) => deleteCollection(db, { id }),
+    
+    onSuccess: (_, id) => {
+      // Remove from collections list
+      queryClient.setQueryData(
+        queryKeys.collections.list(),
+        (old: CollectionsResponse | undefined) => {
+          if (!old) return old;
+          return {
+            ...old,
+            collections: old.collections.filter(c => c.id !== id),
+            pagination: { ...old.pagination, total: Math.max(0, old.pagination.total - 1) }
+          };
+        }
+      );
+      
+      // Remove individual collection cache
+      queryClient.removeQueries({ queryKey: queryKeys.collections.detail({ id }) });
+      
+      // Remove related entries cache
+      queryClient.removeQueries({ queryKey: queryKeys.collections.entries(id) });
+    }
+  });
+}
+```
+
+### Future Migration Pattern
+
+**When API server is ready, only the implementations change:**
+
+```typescript
+// packages/queries/src/implementations/collections.ts
+import { createORPCClient } from '@orpc/client';
+import type { AppRouter } from '@typyst/api';
+
+// FUTURE: Remote implementation
+const apiClient = createORPCClient<AppRouter>({ url: '/api/rpc' });
+
+export async function listCollections(
+  _db: any, // No longer needed
+  input?: ListCollectionsInput
+): Promise<CollectionsResponse> {
+  // Same interface, different implementation!
+  return await apiClient.collections.list(input);
+}
+```
+
+**Query hooks stay EXACTLY the same - zero changes needed!**
 
 ## Implementation Steps
 
-1. **Create package structure and configuration**
-2. **Implement query key factory pattern**
-3. **Create shared utilities for reactive queries**
-4. **Implement web-specific query hooks for collections**
-5. **Implement web-specific query hooks for entries**
-6. **Create desktop file system query hooks**
-7. **Set up QueryClient providers in both apps**
-8. **Implement SSR prefetching for SvelteKit**
-9. **Create component usage examples**
-10. **Add comprehensive documentation**
+1. **Complete @typyst/api package first** (prerequisite)
+   - All router definitions with full CRUD operations
+   - Complete Zod schemas for all inputs/outputs
+   - Middleware patterns for auth and database access
+   - Error handling schemas
+
+2. **Create @typyst/queries package structure**
+   - Package configuration with proper exports
+   - TypeScript configuration
+
+3. **Implement context and utilities**
+   - Database context helpers
+   - QueryClient factory with local-first optimizations
+   - Query key factory using oRPC patterns
+
+4. **Build local oRPC implementations**
+   - Collections CRUD operations following oRPC contracts exactly
+   - Entries CRUD operations following oRPC contracts exactly
+   - Auth operations following oRPC contracts exactly
+
+5. **Create TanStack Query hooks**
+   - Query hooks that use local implementations
+   - Mutation hooks with aggressive optimistic updates
+   - Error handling and rollback logic
+
+6. **Add comprehensive testing**
+   - Unit tests for implementations
+   - Integration tests for query hooks
+   - Optimistic update testing
+
+7. **Create documentation and examples**
+   - Usage patterns
+   - Migration guides
+   - Best practices
 
 ## Testing Strategy
 
-1. **Unit Tests:**
-   - Test query key generation
-   - Test utility functions
-   - Test optimistic update logic
+1. **Implementation Testing:**
+   - Test local oRPC implementations match schemas exactly
+   - Test error cases and edge conditions
+   - Test pagination and filtering logic
 
-2. **Integration Tests:**
-   - Test query hooks with mock databases
+2. **Query Hook Testing:**
+   - Test optimistic updates work correctly
+   - Test rollback on errors
    - Test cache invalidation patterns
-   - Test optimistic updates with error scenarios
 
-3. **E2E Tests:**
-   - Test complete user flows with TanStack Query
-   - Test offline functionality
-   - Test cache persistence across page navigation
+3. **Integration Testing:**
+   - Test context-based database access
+   - Test with real Supabase database
+   - Test concurrent operations
+
+4. **Type Safety Testing:**
+   - Verify end-to-end type safety
+   - Test schema validation
+   - Test TypeScript compilation
 
 ## Acceptance Criteria
 
-- [ ] Package structure is properly organized
-- [ ] Query hooks work for collections and entries
-- [ ] Optimistic updates provide instant UI feedback
-- [ ] Cache invalidation works correctly
-- [ ] SSR prefetching works in SvelteKit
-- [ ] Desktop file system queries function properly
-- [ ] Type safety is maintained throughout
-- [ ] Documentation is comprehensive
-- [ ] Tests pass for all functionality
+- [ ] @typyst/api package is completed with full oRPC contracts
+- [ ] Package structure follows oRPC-first architecture
+- [ ] Context-based database access works seamlessly
+- [ ] All query hooks implement oRPC contracts exactly
+- [ ] Aggressive optimistic updates provide instant UI feedback
+- [ ] Error handling includes proper rollback mechanisms
+- [ ] Type safety is maintained from oRPC → Query → UI
+- [ ] Migration path to API is clearly documented
+- [ ] Comprehensive tests cover all functionality
+- [ ] Documentation includes usage examples
 
 ## Dependencies
 
-- @tanstack/svelte-query
-- @typyst/db package
-- Svelte stores for reactive parameters
+- @tanstack/svelte-query (for reactive queries)
+- @typyst/db (for database access)
+- @typyst/api (for oRPC contracts and types)
+- Svelte (for context system)
 
-## Future Migration Pattern
+## Future Migration Benefits
 
-When API is ready, queries can be easily migrated:
-
-```typescript
-// Current local query
-const collections = useCollections(db);
-
-// Future API query
-const collections = useCollections(apiClient);
-```
-
-The query keys and cache management remain the same, only the data source changes.
+With this architecture:
+- **Zero breaking changes** when migrating to API
+- **Perfect type safety** maintained throughout migration
+- **Gradual migration** possible (feature by feature)
+- **Hybrid modes** supported (local + API simultaneously)
+- **Rollback capability** if API migration needs to be reverted
 
 ## Notes
 
-- Focus on local-first architecture initially
-- All queries work with PGLite/filesystem
-- Migration path to API is prepared but not implemented
-- Optimistic updates provide excellent UX
-- Cache management is centralized and consistent 
+- **Prerequisites:** This task cannot begin until @typyst/api has complete oRPC router definitions
+- **Type Safety:** Perfect end-to-end type safety is the primary goal
+- **Local-First:** All implementations work with local Supabase initially
+- **Migration Ready:** Architecture enables seamless future API integration
+- **Performance:** Aggressive optimistic updates for instant user experience 
