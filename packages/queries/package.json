@@ -1,0 +1,41 @@
+{
+  "name": "@typyst/queries",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./hooks": {
+      "types": "./src/hooks/index.ts",
+      "default": "./src/hooks/index.ts"
+    },
+    "./components": {
+      "types": "./src/components/index.ts",
+      "default": "./src/components/index.ts"
+    },
+    "./lib": {
+      "types": "./src/lib/index.ts",
+      "default": "./src/lib/index.ts"
+    }
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@tanstack/svelte-query": "^5.59.16",
+    "@orpc/client": "^1.5.1"
+  },
+  "peerDependencies": {
+    "@typyst/api": "workspace:*",
+    "svelte": "^4.0.0"
+  },
+  "devDependencies": {
+    "@typyst/eslint-config": "workspace:*",
+    "typescript": "^5.0.0"
+  }
+} 
