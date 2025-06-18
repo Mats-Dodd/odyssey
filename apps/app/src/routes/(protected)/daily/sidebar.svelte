@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { fetchCollectionEntries } from '@/api/collection';
 	import { createNote, openNote } from '@/api/notes';
-	import { pgClient } from '@/client';
+
 	import {
 		activeFile,
 		collection,
@@ -24,12 +24,10 @@
 	let stopWatching: () => void;
 
 	// Watch for changes in the collection
+	// TODO: Replace with real-time updates using collections query hooks
 	async function watchCollection() {
-		const dbWatcher = await pgClient.live.query('SELECT * FROM entry', [], async () => {
-			await fetchCollectionEntries($collection + '/.typyst/daily');
-		});
-
-		return dbWatcher.unsubscribe;
+		// Placeholder - real-time watching will be implemented with Supabase subscriptions
+		return () => {}; // Return empty unsubscribe function
 	}
 
 	const stopWatchingStore = collectionEntries.subscribe((value) => {

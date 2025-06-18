@@ -6,8 +6,5 @@ import { config } from 'dotenv';
 config();
 
 export default defineConfig({
-	plugins: [sveltekit()],
-	optimizeDeps: {
-		exclude: ['@electric-sql/pglite']
-	}
+	plugins: [sveltekit()]
 });

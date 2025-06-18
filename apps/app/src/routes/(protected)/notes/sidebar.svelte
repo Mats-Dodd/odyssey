@@ -6,7 +6,7 @@
 	import Shortcut from '@/components/shared/shortcut.svelte';
 	import Tooltip from '@/components/shared/tooltip.svelte';
 	import { SHORTCUTS } from '@/constants';
-	import { pgClient } from '@/client';
+
 	import {
 		activeFile,
 		collection,
@@ -40,12 +40,10 @@
 	let stopWatching: () => void;
 
 	// Watch for changes in the collection
+	// TODO: Replace with real-time updates using collections query hooks
 	async function watchCollection() {
-		const dbWatcher = await pgClient.live.query(`SELECT * FROM entry`, [], async () => {
-			await fetchCollectionEntries($collection);
-		});
-
-		return dbWatcher.unsubscribe;
+		// Placeholder - real-time watching will be implemented with Supabase subscriptions
+		return () => {}; // Return empty unsubscribe function
 	}
 
 	const stopWatchingStore = collectionEntries.subscribe((value) => {

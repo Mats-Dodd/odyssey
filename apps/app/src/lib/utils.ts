@@ -7,7 +7,7 @@ import { cubicOut } from 'svelte/easing';
 import { get, readable } from 'svelte/store';
 import type { TransitionConfig } from 'svelte/transition';
 import { twMerge } from 'tailwind-merge';
-import { pgClient } from './client';
+
 import { collection, editor } from './store';
 import type { FileEntry, SearchResultParams, ShortcutParams } from './types';
 
@@ -255,35 +255,9 @@ export async function searchEntries(
 	caseSensitive: boolean = false,
 	matchWord: boolean = false
 ): Promise<SearchResultParams[]> {
-	const escapedQuery = query.replace(/'/g, "''");
-	const likeOperator = caseSensitive ? 'LIKE' : 'ILIKE';
-	const wordBoundary = matchWord ? ' ' : '';
-	const searchPattern = `%${wordBoundary}${escapedQuery}${wordBoundary}%`;
-	const sqlQuery = `
-    WITH matched_entries AS (
-      SELECT path, content
-      FROM entry
-      WHERE collection_path = $1
-        AND content ${likeOperator} $2
-    )
-    SELECT path, content
-    FROM matched_entries
-  `;
-	const results = await pgClient.query<{ path: string; content: string }>(sqlQuery, [
-		collectionPath,
-		searchPattern
-	]);
-	const searchResults: SearchResultParams[] = [];
-	results.rows.forEach((row) => {
-		const contexts = extractAllContexts(row.content, escapedQuery, caseSensitive, matchWord);
-		contexts.forEach((context) => {
-			searchResults.push({
-				path: row.path,
-				context_preview: context
-			});
-		});
-	});
-	return searchResults;
+	// TODO: Implement search using Supabase and query hooks
+	console.warn('Search functionality temporarily disabled - will be implemented with Supabase');
+	return [];
 }
 
 function extractAllContexts(
