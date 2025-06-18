@@ -1,5 +1,6 @@
 import { os } from '@orpc/server';
 import type { Context } from '../types/context.js';
+import type { createSupabaseDatabase } from '@typyst/db';
 
 // Database errors
 export class DatabaseError extends Error {
@@ -132,5 +133,25 @@ export const paginate = async <T>(
       hasMore,
       nextCursor: hasMore ? String(page + 1) : undefined
     }
+  };
+};
+
+/**
+ * Create application context for oRPC handlers
+ */
+export const createAppContext = async (
+  event: { request: Request; url: URL },
+  db: ReturnType<typeof createSupabaseDatabase>
+): Promise<Context> => {
+  const { request } = event;
+
+  // For now, return unauthenticated context
+  // TODO: Extract auth from session/cookies
+  return {
+    req: request,
+    db,
+    user: null,
+    session: null,
+    isAuthenticated: false
   };
 };
