@@ -10,17 +10,25 @@
 	const createCollection = useCreateCollection();
 
 	// Log the query state for debugging
-	$: console.log('Collections query state:', {
-		isLoading: $collections.isLoading,
-		error: $collections.error,
-		data: $collections.data
-	});
+	$: {
+		if ($collections.isLoading) {
+			console.log('Loading collections...');
+		} else if ($collections.error) {
+			console.error('Collections query error:', $collections.error);
+		} else if ($collections.data) {
+			console.log('Collections loaded:', $collections.data);
+		}
+	}
 
-	$: console.log('Create mutation state:', {
-		isPending: $createCollection.isPending,
-		error: $createCollection.error,
-		data: $createCollection.data
-	});
+	$: {
+		if ($createCollection.isPending) {
+			console.log('Creating collection...');
+		} else if ($createCollection.error) {
+			console.error('Create collection error:', $createCollection.error);
+		} else if ($createCollection.data) {
+			console.log('Collection created:', $createCollection.data);
+		}
+	}
 
 	// Handle create collection
 	let collectionName = '';
@@ -28,32 +36,31 @@
 
 	async function handleCreateCollection() {
 		if (!collectionName || !collectionPath) {
-			alert('Please fill in both name and path');
+			console.warn('Please fill in both name and path');
 			return;
 		}
+
+		console.log('Creating collection with:', { name: collectionName, path: collectionPath });
 
 		try {
 			await $createCollection.mutateAsync({
 				name: collectionName,
 				path: collectionPath
-				// Optional settings can be added here if needed
 			});
-
-			// Clear form
+			console.log('Collection created successfully!');
+			// Reset form
 			collectionName = '';
 			collectionPath = '';
-
-			console.log('Collection created successfully!');
 		} catch (error) {
 			console.error('Failed to create collection:', error);
 		}
 	}
 
-	// Generate random test data
 	function generateTestData() {
-		const randomId = Math.random().toString(36).substring(2, 8);
-		collectionName = `Test Collection ${randomId}`;
-		collectionPath = `/test-${randomId}`;
+		console.log('Generating test data...');
+		collectionName = 'Test Collection ' + new Date().toLocaleTimeString();
+		collectionPath = '/test-' + Date.now();
+		console.log('Generated test data:', { name: collectionName, path: collectionPath });
 	}
 </script>
 
