@@ -7,23 +7,31 @@ const authRoutes = ['/auth/sign-in', '/auth/sign-up'];
 export const handle: Handle = async ({ event, resolve }) => {
 	const { url, request } = event;
 
-	// Skip auth checks for API routes and static assets
-	if (url.pathname.startsWith('/api') || url.pathname.startsWith('/_app')) {
+	// Skip auth processing for static assets only
+	if (url.pathname.startsWith('/_app')) {
 		return resolve(event);
 	}
 
-	// Get session from request headers
+	// Get session from request headers for ALL routes (including API)
 	let session = null;
 	try {
+		console.log('[Auth] Checking session for URL:', url.pathname);
 		const sessionResult = await getSession(request.headers);
 		session = sessionResult.data;
+		console.log('[Auth] Session result:', session ? 'Found valid session' : 'No session found');
 	} catch (error) {
-		console.error('Session check error:', error);
+		console.error('[Auth] Session check error:', error);
+		console.error('[Auth] Error details:', error instanceof Error ? error.message : error);
 	}
 
-	// Set session in locals for use in load functions
+	// Set session in locals for use in load functions AND API routes
 	event.locals.session = session as typeof event.locals.session; // eslint-disable-line @typescript-eslint/no-explicit-any -- Type assertion needed for Better Auth session compatibility
 	event.locals.user = session?.user || null;
+
+	// Skip redirect logic for API routes
+	if (url.pathname.startsWith('/api')) {
+		return resolve(event);
+	}
 
 	// Check if current route is an auth route
 	const isAuthRoute = authRoutes.some((route) => url.pathname === route);

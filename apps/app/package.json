@@ -47,6 +47,8 @@
 	"dependencies": {
 		"@electric-sql/pglite": "^0.2.0",
 		"@internationalized/date": "^3.5.4",
+		"@orpc/client": "latest",
+		"@orpc/server": "latest",
 		"@tiptap/core": "^2.2.1",
 		"@tiptap/extension-character-count": "^2.5.0",
 		"@tiptap/extension-document": "^2.2.2",

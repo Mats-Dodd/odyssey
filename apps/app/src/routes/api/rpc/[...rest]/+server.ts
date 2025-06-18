@@ -1,7 +1,6 @@
 import { json, type RequestHandler } from '@sveltejs/kit';
 import { appRouter } from '@typyst/api';
 import { createSupabaseDatabase } from '@typyst/db/supabase';
-import { user } from '@typyst/db/schema/auth';
 
 // Type for oRPC decorated procedures
 interface DecoratedProcedure {
@@ -42,30 +41,14 @@ const handle: RequestHandler = async ({ request, locals, url }) => {
 		});
 		console.log('[RPC] Database connection created');
 
-		// Get user from session (use 'test-user' if no session)
-		const userId = locals.session?.user?.id || 'test-user';
-		console.log('[RPC] User ID:', userId, 'Session:', locals.session);
-
-		// Ensure test user exists if using test-user
-		if (userId === 'test-user') {
-			console.log('[RPC] Creating test user...');
-			try {
-				await db.db
-					.insert(user)
-					.values({
-						id: 'test-user-new',
-						name: 'Test User',
-						email: 'test@example.com',
-						emailVerified: false,
-						createdAt: new Date(),
-						updatedAt: new Date()
-					})
-					.onConflictDoNothing();
-				console.log('[RPC] Test user created or already exists');
-			} catch (error) {
-				console.log('[RPC] Test user creation error (likely already exists):', error);
-			}
+		// Check if user is authenticated
+		if (!locals.session?.user?.id) {
+			console.log('[RPC] No authenticated user found, session:', locals.session);
+			return json({ error: 'Authentication required' }, { status: 401 });
 		}
+
+		const userId = locals.session.user.id;
+		console.log('[RPC] Authenticated user ID:', userId);
 
 		// Extract the procedure path from the URL
 		const path = extractProcedurePath(url, '/api/rpc/');
@@ -84,7 +67,7 @@ const handle: RequestHandler = async ({ request, locals, url }) => {
 
 		// Create context for the procedure
 		const context = {
-			user: locals.session?.user || { id: userId },
+			user: locals.session.user,
 			session: locals.session,
 			db
 		};
