@@ -72,6 +72,18 @@
 	</div>
 
 	<div class="flex flex-col items-center gap-2">
+		<Tooltip text="Pipeline Test" side="right">
+			<a href="/test-collections">
+				<Button
+					size="icon"
+					variant="ghost"
+					class="h-7 w-7 fill-muted-foreground hover:fill-foreground"
+					scale="md"
+				>
+					<Icon name="checkSquare" class="w-[18px] h-[18px]" />
+				</Button>
+			</a>
+		</Tooltip>
 		<Tooltip text="Open collection" side="right" shortcut={SHORTCUTS['app:open-collection']}>
 			<Button
 				size="icon"
