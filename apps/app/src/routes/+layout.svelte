@@ -20,6 +20,9 @@
 	import { QueryProvider } from '@typyst/queries';
 	import { user } from '$lib/auth.svelte';
 	import type { LayoutData } from './$types';
+	import { QueryClient } from '@tanstack/svelte-query';
+	import { getApiClient } from '@typyst/queries';
+	import { setApiClientContext } from '@typyst/queries/lib/context';
 
 	export let data: LayoutData;
 
@@ -56,6 +59,14 @@
 		baseUrl: '/api/rpc'
 		// Note: Authentication will be handled via cookies automatically
 	};
+
+	let queryClient = new QueryClient();
+	
+	onMount(() => {
+		// Set up the API client context for queries to work
+		const apiClient = getApiClient();
+		setApiClientContext(apiClient);
+	});
 
 	onMount(async () => {
 		// Initialize auth state using server data if available
